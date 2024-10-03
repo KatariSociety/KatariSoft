@@ -3,6 +3,7 @@ import react from '@vitejs/plugin-react';
 import { resolve } from 'path';
 
 export default defineConfig({
+    base: '/KatariSoft/',
     plugins: [react()],
     root: resolve(__dirname, 'cliente'), // Define la carpeta cliente como la raíz del proyecto
     build: {
