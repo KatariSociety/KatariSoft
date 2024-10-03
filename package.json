@@ -2,7 +2,7 @@
   "name": "katari1.0",
   "version": "1.0.0",
   "type": "module",
-  "homepage": "https://JarbyDaniel.github.io/KatariSoft",
+  "homepage": "https://jarbydaniel.github.io/KatariSoft",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
