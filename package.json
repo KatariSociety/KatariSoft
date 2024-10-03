@@ -9,7 +9,7 @@
     "serve": "vite preview"
   },
   "keywords": [],
-  "author": "Juan Yepez, Jarby",
+  "author": "Juan Yepez, Jarby Daniel Salazar",
   "license": "MIT",
   "description": "Proyecto web de Katari society, realizado para la competencia LASC",
   "dependencies": {
