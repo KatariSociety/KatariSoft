@@ -14,7 +14,7 @@ This is the official repository for the Katari Society web project, developed fo
 
 ## Project Overview
 
-Katari Society is a research group dedicated to the exploration and development of aerospace technologies. Composed of students from various disciplines at the University of Cauca and the University of Valle, Katari Society aims to promote research in space science and technology through innovative projects. One of their key initiatives is participating in the Latin American Space Challenge (LASC), where the group strives to build advanced technological solutions to protect the natural resources of the Amazon. The Katari Society project provides a platform for young space enthusiasts to turn their ideas into real projects, bringing them closer to the dream of space exploration.
+Katari Society is a research group dedicated to the exploration and development of aerospace technologies. Composed of students from various disciplines at the University of Cauca, Katari Society aims to promote research in space science and technology through innovative projects. One of their key initiatives is participating in the Latin American Space Challenge (LASC), where the group strives to build advanced technological solutions to protect the natural resources of the Amazon. The Katari Society project provides a platform for young space enthusiasts to turn their ideas into real projects, bringing them closer to the dream of space exploration.
 
 ## Installation
 
