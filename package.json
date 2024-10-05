@@ -13,7 +13,7 @@
   "license": "MIT",
   "description": "Proyecto web de Katari society, realizado para la competencia LASC",
   "dependencies": {
-    "express": "^4.19.2",
+    "express": "^4.21.0",
     "framer-motion": "^11.5.4",
     "lucide-react": "^0.441.0",
     "postcss": "^8.4.47",
