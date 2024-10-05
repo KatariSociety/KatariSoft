@@ -4,9 +4,9 @@ import { Search } from "lucide-react";
 
 const userData = [
 	{ id: 1, name: "Sarah Cabeza", email: "integrante@example.com", role: "Mission leader", status: "Active" },
-	{ id: 2, name: "Santiago Chaves", email: "integrante@example.com", role: "Technology Manager", status: "Active" },
-	{ id: 3, name: "Alejandra Freire", email: "integrante@example.com", role: "Operations Manager", status: "Active" },
-	{ id: 4, name: "Jarby Salazar", email: "integrante@example.com", role: "Safety Manager", status: "Active" },
+	{ id: 2, name: "Jarby Salazar", email: "integrante@example.com", role: "Safety Manager", status: "Active" },
+	{ id: 3, name: "Santiago Chaves", email: "integrante@example.com", role: "Technology Manager", status: "Active" },
+	{ id: 4, name: "Alejandra Freire", email: "integrante@example.com", role: "Operations Manager", status: "Active" },	
 	{ id: 5, name: "Esteban Yepez", email: "integrante@example.com", role: "Estación Terrena", status: "Active" },
 	{ id: 6, name: "Eduar Cabrera", email: "integrante@example.com", role: "Propulsión", status: "Inactive" },
 	{ id: 7, name: "Alejandro Patiño", email: "integrante@example.com", role: "Aeroestructura", status: "Active" },
@@ -15,10 +15,10 @@ const userData = [
 	{ id: 10, name: "Jose Velasco ", email: "integrante@example.com", role: "Aviónica", status: "Active" },
 	{ id: 11, name: "Joiner torres", email: "integrante@example.com", role: "Aviónica", status: "Active" },
 	{ id: 12, name: "Maria Hurtado", email: "integrante@example.com", role: "Recuperación", status: "Active" },
-	{ id: 13, name: "Elizabeth Muñoz", email: "integrante@example.com", role: "Recuperación", status: "Active" },
-	{ id: 14, name: "Juliana Urrego", email: "integrante@example.com", role: "Marketing/Finanzas", status: "Active" },
+	{ id: 13, name: "Elizabeth Muñoz", email: "integrante@example.com", role: "Recuperación", status: "Active" },	
 	{ id: 15, name: "Juan Lozada", email: "integrante@example.com", role: "Marketing/Finanzas", status: "Active" },
 	{ id: 16, name: "Oliver Davila", email: "integrante@example.com", role: "Marketing/Finanzas", status: "Active" },
+	{ id: 14, name: "Juliana Urrego", email: "integrante@example.com", role: "Marketing/Finanzas", status: "Inactive" },
 ];
 
 const UsersTable = () => {
