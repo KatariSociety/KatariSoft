@@ -2,7 +2,7 @@
   "name": "katari1.0",
   "version": "1.0.0",
   "type": "module",
-  "homepage": "https://jarbydaniel.github.io/KatariSoft",
+  "homepage": "https://jarbydaniel.github.io/",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
@@ -12,11 +12,10 @@
     "deploy": "gh-pages -d dist"
   },
   "keywords": [],
-  "author": "Juan Yepez, Jarby Daniel Salazar",
+  "author": "Jarby Daniel, Juan Yepez",
   "license": "MIT",
   "description": "Proyecto web de Katari society, realizado para la competencia LASC",
-  "dependencies": {
-    "express": "^4.21.0",
+  "dependencies": {    
     "framer-motion": "^11.5.4",
     "lucide-react": "^0.441.0",
     "postcss": "^8.4.47",

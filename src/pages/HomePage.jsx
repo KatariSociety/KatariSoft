@@ -16,7 +16,7 @@ const HomePage = () => {
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.5, delay: 0.2 }}
                     >
-                        <img src='../images/katari-society.jpeg' alt='Katari Society' className='w-full lg:w-1/2 h-auto object-cover rounded-lg shadow-lg' />
+                        <img src='/src/assets/katari-society.jpeg' alt='Katari Society' className='w-full lg:w-1/2 h-auto object-cover rounded-lg shadow-lg' />
                         <div className='text-gray-300 text-justify'>
                             <h2 className='text-2xl font-semibold mb-4'>Katari Society</h2>
                             <p>
@@ -32,7 +32,7 @@ const HomePage = () => {
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.5, delay: 0.2 }}
                     >
-                        <img src='../images/katari-x.jpg' alt='Katari X' className='w-full lg:w-1/3 h-auto object-cover rounded-lg shadow-lg' />
+                        <img src='/src/assets/katari-x.jpeg' alt='Katari X' className='w-full lg:w-1/3 h-auto object-cover rounded-lg shadow-lg' />
                         <div className='text-gray-300 text-justify'>
                             <h2 className='text-2xl font-semibold mb-4'>Katari X</h2>
                             <p>
@@ -51,12 +51,12 @@ const HomePage = () => {
                     >
                         
                         <div className='text-gray-300 text-justify'>
-                            <h2 className='text-2xl font-semibold mb-4'>xxxx</h2>
+                            <h2 className='text-2xl font-semibold mb-4'>CanSat</h2>
                             <p>
-                            El xxxx es el satélite de bajo costo diseñado por Katari Society para llevar a cabo misiones de monitoreo y recolección de datos en altitud. A pesar de su pequeño tamaño, el CanSat está equipado con múltiples sensores que permiten medir variables como temperatura, presión, altitud, humedad, posición geográfica, monóxido de carbono, dióxido de carbono, aceleración y velocidad durante su descenso. Este dispositivo es lanzado a bordo de Katari X, y su misión consiste en transmitir datos en tiempo real gestionado por este software. El desarrollo de este satélite es un reto multidisciplinario que permite realizar una demostración del compromiso del equipo con la investigación y el avance de la tecnología espacial accesible para todos.
+                            El Cansat es el satélite de bajo costo diseñado por Katari Society para llevar a cabo misiones de monitoreo y recolección de datos en altitud. A pesar de su pequeño tamaño, el CanSat está equipado con múltiples sensores que permiten medir variables como temperatura, presión, altitud, humedad, posición geográfica, monóxido de carbono, dióxido de carbono, aceleración y velocidad durante su descenso. Este dispositivo es lanzado a bordo de Katari X, y su misión consiste en transmitir datos en tiempo real gestionado por este software. El desarrollo de este satélite es un reto multidisciplinario que permite realizar una demostración del compromiso del equipo con la investigación y el avance de la tecnología espacial accesible para todos.
                             </p>
                         </div>
-                        <img src='../images/katari-x.jpg' alt='Katari cansat' className='w-full lg:w-1/3 h-auto object-cover rounded-lg shadow-lg' />
+                        <img src='/src/assets/katari-cansat.jpg' alt='Katari cansat' className='w-full lg:w-1/3 h-auto object-cover rounded-lg shadow-lg' />
                     </motion.div>
 
                     {/* Sección de Redes Sociales */}

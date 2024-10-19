@@ -2,16 +2,16 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import { resolve } from 'path';
 
-export default defineConfig({
-    base: '/KatariSoft/',
-    plugins: [react()],
-    root: resolve(__dirname, 'cliente'), // Define la carpeta cliente como la raíz del proyecto
-    build: {
-        outDir: resolve(__dirname, 'dist'), // Define la carpeta de salida para la compilación
-    },
-    server: {
-        proxy: {
-            '/api': 'http://localhost:3000', // Proxy para las rutas de la API en el servidor Express
-        },
-    },
-});
+export default defineConfig(({ mode }) => ({
+  //base: mode === 'development' ? '/katarisoft/' : '/', // Base solo para desarrollo
+  plugins: [react()],
+  build: {
+    outDir: resolve(__dirname, 'dist'), // La carpeta de salida para la compilación
+    emptyOutDir: true, // Limpia la carpeta de salida antes de compilar
+  },
+  server: {
+    proxy: mode === 'development' ? {
+      '/api': 'http://localhost:3000', // Proxy para desarrollo local
+    } : {},
+  },
+}));

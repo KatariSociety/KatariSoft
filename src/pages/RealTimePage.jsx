@@ -59,7 +59,7 @@ const RealTimePage = () => {
                     {/* Contenedor de imagen y botones */}
                     <div className='lg:w-4/12 flex flex-col justify-center'>
                         <div className='flex-1 mb-4 flex justify-center'>
-                            <img src='../images/vuelo.png' alt='Imagen' className='h-full object-cover' />
+                            <img src='/src/assets/vuelo.png' alt='Imagen' className='h-full object-cover' />
                         </div>
                         <div className='flex flex-col space-y-2'>
                             <Actions onStart={handleStart} onStop={handleStop} />                         
