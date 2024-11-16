@@ -7,7 +7,7 @@ const ConnectedAccounts = () => {
 		{
 			id: 1,
 			name: "AWS",
-			connected: true,
+			connected: false,
 		},		
 	]);
 	return (
@@ -42,7 +42,7 @@ const ConnectedAccounts = () => {
 				</div>
 			))}
 			<button className='mt-4 flex items-center text-indigo-400 hover:text-indigo-300 transition duration-200'>
-				<Plus size={18} className='mr-2' /> Adicionar
+				<Plus size={18} className='mr-2' /> Agregar cuenta
 			</button>
 		</SettingSection>
 	);

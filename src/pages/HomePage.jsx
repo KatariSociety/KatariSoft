@@ -32,11 +32,11 @@ const HomePage = () => {
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.5, delay: 0.2 }}
                     >
-                        <img src='/src/assets/katari-x.jpeg' alt='Katari X' className='w-full lg:w-1/3 h-auto object-cover rounded-lg shadow-lg' />
+                        <img src='/src/assets/katari-cansat.jpg' alt='Amaru' className='w-full lg:w-1/3 h-auto object-cover rounded-lg shadow-lg' />
                         <div className='text-gray-300 text-justify'>
-                            <h2 className='text-2xl font-semibold mb-4'>Katari X</h2>
+                            <h2 className='text-2xl font-semibold mb-4'>Amaru</h2>
                             <p>
-                            Katari X es el cohete experimental desarrollado por Katari Society. Este cohete es un hito en el proyecto, ya que no solo integra sistemas de propulsión seguro y un diseño aeródinámico eficientes, sino que también incorpora tecnologías de telemetría y recuperación. Su desarrollo implica un proceso riguroso de investigación, simulaciones y pruebas para asegurar su rendimiento en cualquier condición. Katari X tiene como misión alcanzar un apogeo de 500 metros, demostrando la capacidad técnica y organizativa del equipo para desarrollar sistemas aeroespaciales de bajo costo pero alto impacto. El cohete simboliza el esfuerzo conjunto de un grupo que sueña con expandir los límites de la tecnología espacial en Latinoamérica.
+                            Amaru es el cohete experimental desarrollado por Katari Society. Este cohete es un hito en el proyecto, ya que no solo integra sistemas de propulsión seguro y un diseño aeródinámico eficientes, sino que también incorpora tecnologías de telemetría y recuperación. Su desarrollo implica un proceso riguroso de investigación, simulaciones y pruebas para asegurar su rendimiento en cualquier condición. Amaru tiene como misión alcanzar un apogeo de 500 metros, demostrando la capacidad técnica y organizativa del equipo para desarrollar sistemas aeroespaciales de bajo costo pero alto impacto. El cohete simboliza el esfuerzo conjunto de un grupo que sueña con expandir los límites de la tecnología espacial en Latinoamérica.
                             </p>
                         </div>
                     </motion.div>
@@ -51,12 +51,12 @@ const HomePage = () => {
                     >
                         
                         <div className='text-gray-300 text-justify'>
-                            <h2 className='text-2xl font-semibold mb-4'>CanSat</h2>
+                            <h2 className='text-2xl font-semibold mb-4'>Tapirus</h2>
                             <p>
-                            El Cansat es el satélite de bajo costo diseñado por Katari Society para llevar a cabo misiones de monitoreo y recolección de datos en altitud. A pesar de su pequeño tamaño, el CanSat está equipado con múltiples sensores que permiten medir variables como temperatura, presión, altitud, humedad, posición geográfica, monóxido de carbono, dióxido de carbono, aceleración y velocidad durante su descenso. Este dispositivo es lanzado a bordo de Katari X, y su misión consiste en transmitir datos en tiempo real gestionado por este software. El desarrollo de este satélite es un reto multidisciplinario que permite realizar una demostración del compromiso del equipo con la investigación y el avance de la tecnología espacial accesible para todos.
+                            Tapirus es el satélite de bajo costo diseñado por Katari Society para llevar a cabo misiones de monitoreo y recolección de datos en altitud. A pesar de su pequeño tamaño, el CanSat está equipado con múltiples sensores que permiten medir variables como temperatura, presión, altitud, humedad, posición geográfica, monóxido de carbono, dióxido de carbono, aceleración y velocidad durante su descenso. Este dispositivo es lanzado a bordo de Amaru, y su misión consiste en transmitir datos en tiempo real gestionado por este software. El desarrollo de este satélite es un reto multidisciplinario que permite realizar una demostración del compromiso del equipo con la investigación y el avance de la tecnología espacial accesible para todos.
                             </p>
                         </div>
-                        <img src='/src/assets/katari-cansat.jpg' alt='Katari cansat' className='w-full lg:w-1/3 h-auto object-cover rounded-lg shadow-lg' />
+                        <img src='/src/assets/katari-cansat.jpg' alt='Tapirus' className='w-full lg:w-1/3 h-auto object-cover rounded-lg shadow-lg' />
                     </motion.div>
 
                     {/* Sección de Redes Sociales */}

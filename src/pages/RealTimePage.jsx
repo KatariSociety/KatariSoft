@@ -1,3 +1,4 @@
+import React, { useEffect, useState } from 'react';
 import { BarChart2, MapPin, Zap, Rocket, Satellite, Thermometer, CloudHail, Gauge } from "lucide-react";
 import { motion } from "framer-motion";
 
@@ -8,7 +9,8 @@ import DangerZone from "../components/realtime/DangerZone";
 import { useTimer } from "../context/TimerContext";
 
 const RealTimePage = () => {
-    const { handleStart, handleStop,} = useTimer();    
+    const { handleStart, handleStop,} = useTimer();
+     
     return (
         <div className='flex-1 overflow-auto relative z-10'>
             <Header title='Datos en tiempo real' />
