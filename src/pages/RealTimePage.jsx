@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { BarChart2, MapPin, Zap, Rocket, Satellite, Thermometer, CloudHail, Gauge } from "lucide-react";
 import { motion } from "framer-motion";
 
@@ -7,10 +7,28 @@ import StatCard from "../components/common/StatCard";
 import Actions from "../components/realtime/Actions";
 import DangerZone from "../components/realtime/DangerZone";
 import { useTimer } from "../context/TimerContext";
+import { useSensorsData } from "../context/SensorsData";
 
 const RealTimePage = () => {
-    const { handleStart, handleStop,} = useTimer();
-     
+    const { handleStart, handleStop } = useTimer();
+    const { data, startGeneratingData, stopGeneratingData } = useSensorsData();
+
+    if (!data || !data.sensors) {
+        return <div>Loading...</div>;
+    }
+
+    const { sensors } = data;
+
+    const handleStartAll = () => {
+        handleStart();
+        startGeneratingData();
+    };
+
+    const handleStopAll = () => {
+        handleStop();
+        stopGeneratingData();
+    };
+
     return (
         <div className='flex-1 overflow-auto relative z-10'>
             <Header title='Datos en tiempo real' />
@@ -28,10 +46,10 @@ const RealTimePage = () => {
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ duration: 1 }}
                             >
-                                <StatCard name='Velocidad' icon={Rocket} value='7,890 km/h' color='#6366F1' />
-                                <StatCard name='Altura' icon={Zap} value='435 m' color='#8B5CF6' />
-                                <StatCard name='Giroscopio' icon={BarChart2} value='ax ,ay, az' color='#EC4899' />
-                                <StatCard name='GPS' icon={MapPin} value='-10102 1354' color='#10B981' />
+                                <StatCard name='Velocidad' icon={Rocket} value={`${sensors.NEO6M.readings.speed.value} ${sensors.NEO6M.readings.speed.unit}`} color='#6366F1' />
+                                <StatCard name='Altura' icon={Zap} value={`${sensors.BMP280.readings.altitude.value} ${sensors.BMP280.readings.altitude.unit}`} color='#8B5CF6' />
+                                <StatCard name='Giroscopio' icon={BarChart2} value={`x: ${sensors.MPU9250.readings.gyroscope.x.value}, y: ${sensors.MPU9250.readings.gyroscope.y.value}, z: ${sensors.MPU9250.readings.gyroscope.z.value}`} color='#EC4899' />
+                                <StatCard name='GPS' icon={MapPin} value={`${sensors.NEO6M.readings.location.latitude}, ${sensors.NEO6M.readings.location.longitude}`} color='#10B981' />
                             </motion.div>
                         </div>
 
@@ -44,17 +62,17 @@ const RealTimePage = () => {
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ duration: 1 }}
                             >
-                                <StatCard name='Velocidad' icon={Satellite} value='22,2 km/h' color='#6366F1' />
-                                <StatCard name='Altura' icon={BarChart2} value='435 m' color='#8B5CF6' />
-                                <StatCard name='GPS' icon={MapPin} value='-10102 1354' color='#10B981' />
-                                <StatCard name='Presión' icon={Gauge} value='23' color='#6366F1' />
-                                <StatCard name='Temperature' icon={Thermometer} value='20°C' color='#EC4899' />
+                                <StatCard name='Velocidad' icon={Satellite} value={`${sensors.NEO6M.readings.speed.value} ${sensors.NEO6M.readings.speed.unit}`} color='#6366F1' />
+                                <StatCard name='Altura' icon={BarChart2} value={`${sensors.BMP280.readings.altitude.value} ${sensors.BMP280.readings.altitude.unit}`} color='#8B5CF6' />
+                                <StatCard name='GPS' icon={MapPin} value={`${sensors.NEO6M.readings.location.latitude}, ${sensors.NEO6M.readings.location.longitude}`} color='#10B981' />
+                                <StatCard name='Presión' icon={Gauge} value={`${sensors.BMP280.readings.pressure.value} ${sensors.BMP280.readings.pressure.unit}`} color='#6366F1' />
+                                <StatCard name='Temperatura' icon={Thermometer} value={`${sensors.BMP280.readings.temperature.value} ${sensors.BMP280.readings.temperature.unit}`} color='#EC4899' />
                                 <StatCard name='Humedad' icon={CloudHail} value='12%' color='#8B5CF6' />
-                                <StatCard name='CO' icon={Zap} value='12' color='#10B981' />
-                                <StatCard name='CO2' icon={Zap} value='18' color='#EC4899' />
+                                <StatCard name='TVOC' icon={Zap} value={`${sensors.CCS811.readings.TVOC.value} ${sensors.CCS811.readings.TVOC.unit}`} color='#EC4899' />
+                                <StatCard name='CO2' icon={Zap} value={`${sensors.CCS811.readings.CO2.value} ${sensors.CCS811.readings.CO2.unit}`} color='#EC4899' />
                             </motion.div>
-							<br /><br />
-							<DangerZone />
+                            <br /><br />
+                            <DangerZone />
                         </div>
                     </div>
 
@@ -64,7 +82,7 @@ const RealTimePage = () => {
                             <img src='/src/assets/vuelo.png' alt='Imagen' className='h-full object-cover' />
                         </div>
                         <div className='flex flex-col space-y-2'>
-                            <Actions onStart={handleStart} onStop={handleStop} />                         
+                            <Actions onStart={handleStartAll} onStop={handleStopAll} />
                         </div>
                     </div>
                 </div>
@@ -72,4 +90,5 @@ const RealTimePage = () => {
         </div>
     );
 };
+
 export default RealTimePage;
