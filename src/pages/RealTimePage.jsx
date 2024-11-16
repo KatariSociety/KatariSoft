@@ -8,6 +8,7 @@ import Actions from "../components/realtime/Actions";
 import DangerZone from "../components/realtime/DangerZone";
 import { useTimer } from "../context/TimerContext";
 import { useSensorsData } from "../context/SensorsData";
+import AnimatedCylinder from "../components/realtime/AnimatedCylinder";
 
 const RealTimePage = () => {
     const { handleStart, handleStop } = useTimer();
@@ -68,7 +69,7 @@ const RealTimePage = () => {
                                 <StatCard name='Presión' icon={Gauge} value={`${sensors.BMP280.readings.pressure.value} ${sensors.BMP280.readings.pressure.unit}`} color='#6366F1' />
                                 <StatCard name='Temperatura' icon={Thermometer} value={`${sensors.BMP280.readings.temperature.value} ${sensors.BMP280.readings.temperature.unit}`} color='#EC4899' />
                                 <StatCard name='Humedad' icon={CloudHail} value='12%' color='#8B5CF6' />
-                                <StatCard name='TVOC' icon={Zap} value={`${sensors.CCS811.readings.TVOC.value} ${sensors.CCS811.readings.TVOC.unit}`} color='#EC4899' />
+                                <StatCard name='CO' icon={Zap} value='12' color='#10B981' />
                                 <StatCard name='CO2' icon={Zap} value={`${sensors.CCS811.readings.CO2.value} ${sensors.CCS811.readings.CO2.unit}`} color='#EC4899' />
                             </motion.div>
                             <br /><br />
@@ -76,10 +77,10 @@ const RealTimePage = () => {
                         </div>
                     </div>
 
-                    {/* Contenedor de imagen y botones */}
+                    {/* Contenedor del simulador */}
                     <div className='lg:w-4/12 flex flex-col justify-center'>
                         <div className='flex-1 mb-4 flex justify-center'>
-                            <img src='/src/assets/vuelo.png' alt='Imagen' className='h-full object-cover' />
+                            <AnimatedCylinder />
                         </div>
                         <div className='flex flex-col space-y-2'>
                             <Actions onStart={handleStartAll} onStop={handleStopAll} />
