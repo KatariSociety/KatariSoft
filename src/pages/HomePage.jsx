@@ -16,7 +16,7 @@ const HomePage = () => {
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.5, delay: 0.2 }}
                     >
-                        <img src='/src/assets/katari-society.jpeg' alt='Katari Society' className='w-full lg:w-1/2 h-auto object-cover rounded-lg shadow-lg' />
+                        <img src='/src/assets/katari_society.jpeg' alt='Katari Society' className='w-full lg:w-1/2 h-auto object-cover rounded-lg shadow-lg' />
                         <div className='text-gray-300 text-justify'>
                             <h2 className='text-2xl font-semibold mb-4'>Katari Society</h2>
                             <p>

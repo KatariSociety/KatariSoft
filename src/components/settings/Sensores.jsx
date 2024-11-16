@@ -6,10 +6,10 @@ import ToggleSwitch from "./ToggleSwitch";
 const Sensores = () => {
 	const [sensores, setSensores] = useState({
 		gps: true,
-		bmp: true,
-		gy91: true,
-		co2: true,
-		cam: false,
+		barometro: true,
+		giroscopio: true,
+		aire: true,
+		camara: false,
 	});
 	const handleSettingsClick = (sensorlabel) => {
 		alert(`Configuración de ${sensorlabel} en construcción`);
