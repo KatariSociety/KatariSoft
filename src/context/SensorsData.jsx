@@ -12,7 +12,7 @@ const generateRandomData = (currentAltitude) => {
                 timestamp: new Date().toISOString(),
                 readings: {
                     temperature: {
-                        value: (Math.random() * 40).toFixed(2),
+                        value: 29,
                         unit: "C"
                     },
                     pressure: {
@@ -38,7 +38,7 @@ const generateRandomData = (currentAltitude) => {
                         }
                     },
                     speed: {
-                        value: (Math.random() * 200).toFixed(2),
+                        value: 5+(Math.random() * 2).toFixed(2),
                         unit: "km/h"
                     },
                     satellites: Math.floor(Math.random() * 20)

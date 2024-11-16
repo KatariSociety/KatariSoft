@@ -15,7 +15,9 @@
   "author": "Jarby Daniel, Juan Yepez",
   "license": "MIT",
   "description": "Proyecto web de Katari society, realizado para la competencia LASC",
-  "dependencies": {    
+  "dependencies": {
+    "@react-three/drei": "^9.116.3",
+    "@react-three/fiber": "^8.17.10",
     "framer-motion": "^11.5.4",
     "lucide-react": "^0.441.0",
     "postcss": "^8.4.47",
@@ -24,6 +26,7 @@
     "react-router-dom": "^6.26.2",
     "recharts": "^2.12.7",
     "tailwindcss": "^3.4.12",
+    "three": "^0.170.0",
     "vite": "^5.4.3"
   },
   "devDependencies": {
