@@ -8,7 +8,7 @@ import Actions from "../components/realtime/Actions";
 import DangerZone from "../components/realtime/DangerZone";
 import { useTimer } from "../context/TimerContext";
 import { useSensorsData } from "../context/SensorsData";
-import AnimatedCylinder from "../components/realtime/AnimatedCylinder";
+import SimulationCanSat from "../components/realtime/SimulationCanSat";
 
 const RealTimePage = () => {
     const { handleStart, handleStop } = useTimer();
@@ -80,7 +80,7 @@ const RealTimePage = () => {
                     {/* Contenedor del simulador */}
                     <div className='lg:w-4/12 flex flex-col justify-center'>
                         <div className='flex-1 mb-4 flex justify-center'>
-                            <AnimatedCylinder />
+                            <SimulationCanSat />
                         </div>
                         <div className='flex flex-col space-y-2'>
                             <Actions onStart={handleStartAll} onStop={handleStopAll} />
