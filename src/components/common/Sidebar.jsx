@@ -5,14 +5,14 @@ import { Link } from "react-router-dom";
 import logoImage from '/images/katariLogo.png';
 
 const SIDEBAR_ITEMS_TOP = [
-    { name: "Tiempo Real", icon: TimerReset, color: "#3B82F6", href: "/realtime" },
-    { name: "Dashboard", icon: TrendingUp, color: "#6366f1", href: "/dashboard" },
-    { name: "Histórico", icon: BarChart2, color: "#8B5CF6", href: "/historical" },
+    { name: "Tiempo Real", icon: TimerReset, color: "#3B82F6", href: "/katarisoft/realtime" },
+    { name: "Dashboard", icon: TrendingUp, color: "#6366f1", href: "/katarisoft/dashboard" },
+    { name: "Histórico", icon: BarChart2, color: "#8B5CF6", href: "/katarisoft/historical" },
 ];
 
 const SIDEBAR_ITEMS_BOTTOM = [
-    { name: "Integrantes", icon: Users, color: "#EC4899", href: "/users" },
-    { name: "Settings", icon: Settings, color: "#6EE7B7", href: "/settings" },
+    { name: "Integrantes", icon: Users, color: "#EC4899", href: "/katarisoft/users" },
+    { name: "Settings", icon: Settings, color: "#6EE7B7", href: "/katarisoft/settings" },
 ];
 
 const Sidebar = () => {
@@ -27,7 +27,7 @@ const Sidebar = () => {
         >
             <div className='h-full bg-gray-800 bg-opacity-50 backdrop-blur-md p-4 flex flex-col border-r border-gray-700'>
                 <div className='flex items-center justify-between'>
-                    <Link to="/" className='flex items-center'>
+                    <Link to="/katarisoft/" className='flex items-center'>
                         <AnimatePresence mode="wait">
                             {isSidebarOpen ? (
                                 <motion.img 

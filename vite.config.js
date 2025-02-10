@@ -3,15 +3,15 @@ import react from '@vitejs/plugin-react';
 import { resolve } from 'path';
 
 export default defineConfig(({ mode }) => ({
-  //base: mode === 'development' ? '/katarisoft/' : '/', // Base solo para desarrollo
+  base: mode === 'production' ? '/katarisoft/' : '/',
   plugins: [react()],
   build: {
-    outDir: resolve(__dirname, 'dist'), // La carpeta de salida para la compilación
-    emptyOutDir: true, // Limpia la carpeta de salida antes de compilar
+    outDir: resolve(__dirname, 'dist'),
+    emptyOutDir: true,
   },
   server: {
     proxy: mode === 'development' ? {
-      '/api': 'http://localhost:3000', // Proxy para desarrollo local
+      '/api': 'http://localhost:3000',
     } : {},
   },
 }));
