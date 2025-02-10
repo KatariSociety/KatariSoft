@@ -1,33 +1,29 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { Search } from "lucide-react";
+import Alert from '../common/Alert';
 
 const userData = [
 	{ id: 1, name: "Sarah Cabeza", email: "integrante@example.com", role: "Mission leader", status: "Active" },
 	{ id: 2, name: "Jarby Salazar", email: "integrante@example.com", role: "Safety Manager", status: "Active" },
 	{ id: 3, name: "Santiago Chaves", email: "integrante@example.com", role: "Technology Manager", status: "Active" },		
-	{ id: 5, name: "Esteban Yepez", email: "integrante@example.com", role: "Estación Terrena", status: "Active" },
-	{ id: 9, name: "Jhonatan Becerra", email: "integrante@example.com", role: "Aviónica", status: "Active" },
-	{ id: 10, name: "Jose Velasco ", email: "integrante@example.com", role: "Aviónica", status: "Active" },
-	{ id: 11, name: "Alejandro Torres", email: "integrante@example.com", role: "Aviónica", status: "Active" },
+	{ id: 4, name: "Esteban Yepez", email: "integrante@example.com", role: "Estación Terrena", status: "Active" },
+	{ id: 5, name: "Jhonatan Becerra", email: "integrante@example.com", role: "Aviónica", status: "Active" },
+	{ id: 6, name: "Jose Velasco ", email: "integrante@example.com", role: "Aviónica", status: "Active" },
+	{ id: 7, name: "Alejandro Torres", email: "integrante@example.com", role: "Aviónica", status: "Active" },
 	{ id: 8, name: "Laura García", email: "integrante@example.com", role: "Aeroestructura", status: "Active" },
-	{ id: 12, name: "Aleja Hurtado", email: "integrante@example.com", role: "Recuperación", status: "Active" },
-	{ id: 13, name: "Elizabeth Muñoz", email: "integrante@example.com", role: "Recuperación", status: "Active" },
-	{ id: 13, name: "Fabian Ramirez", email: "integrante@example.com", role: "Recuperación", status: "Active" },
-	{ id: 4, name: "Willian Medina", email: "integrante@example.com", role: "Propulsión", status: "Active" },
-	{ id: 4, name: "Miguel Gaitan", email: "integrante@example.com", role: "Propulsión", status: "Active" },
-	{ id: 4, name: "Juan botina", email: "integrante@example.com", role: "Propulsión", status: "Active" },
-	{ id: 16, name: "Oliver Davila", email: "integrante@example.com", role: "Marketing/Finanzas", status: "Active" },
-	{ id: 16, name: "Sebastian Vivas", email: "integrante@example.com", role: "Marketing/Finanzas", status: "Active" },
-	{ id: 16, name: "Gabriela Lopez", email: "integrante@example.com", role: "Marketing/Finanzas", status: "Active" },
-	{ id: 15, name: "Juan Lozada", email: "integrante@example.com", role: "Marketing/Finanzas", status: "Active" },
-	{ id: 14, name: "Juliana Urrego", email: "integrante@example.com", role: "Marketing/Finanzas", status: "Inactive" },
-	{ id: 4, name: "Alejandra Freire", email: "integrante@example.com", role: "Propulsión", status: "Inactive" },
-	{ id: 6, name: "Eduar Cabrera", email: "integrante@example.com", role: "Propulsión", status: "Inactive" },
-	{ id: 7, name: "Alejandro Patiño", email: "integrante@example.com", role: "Aeroestructura", status: "Inactive" },
+	{ id: 9, name: "Aleja Hurtado", email: "integrante@example.com", role: "Recuperación", status: "Active" },
+	{ id: 10, name: "Elizabeth Muñoz", email: "integrante@example.com", role: "Recuperación", status: "Active" },
+	{ id: 11, name: "Fabian Ramirez", email: "integrante@example.com", role: "Recuperación", status: "Active" },
+	{ id: 12, name: "Alejandra Freire", email: "integrante@example.com", role: "Propulsión", status: "Active" },
+	{ id: 13, name: "Oliver Davila", email: "integrante@example.com", role: "Marketing/Finanzas", status: "Active" },
+	{ id: 14, name: "Sebastian Vivas", email: "integrante@example.com", role: "Marketing/Finanzas", status: "Active" },
+	{ id: 15, name: "Juan Lozada", email: "integrante@example.com", role: "Marketing/Finanzas", status: "Active" },	
+	{ id: 16, name: "Alejandro Patiño", email: "integrante@example.com", role: "Aeroestructura", status: "Inactive" },
 ];
 
 const UsersTable = () => {
+	const [showAlert, setShowAlert] = useState(false);
 	const [searchTerm, setSearchTerm] = useState("");
 	const [filteredUsers, setFilteredUsers] = useState(userData);
 
@@ -126,14 +122,20 @@ const UsersTable = () => {
 								</td>
 
 								<td className='px-6 py-4 whitespace-nowrap text-sm text-gray-300'>
-									<button className='text-indigo-400 hover:text-indigo-300 mr-2'>Edit</button>
-									<button className='text-red-400 hover:text-red-300'>Delete</button>
+									<button className='text-indigo-400 hover:text-indigo-300 mr-2' onClick={() => setShowAlert(true)}>Edit</button>
+									<button className='text-red-400 hover:text-red-300' onClick={() => setShowAlert(true)}>Delete</button>									
 								</td>
 							</motion.tr>
 						))}
 					</tbody>
 				</table>
 			</div>
+			<Alert 
+				title="Aviso"
+				message="Inicie sesión para realiazar esta acción"
+				isVisible={showAlert}
+				onClose={() => setShowAlert(false)}
+			/>
 		</motion.div>
 	);
 };

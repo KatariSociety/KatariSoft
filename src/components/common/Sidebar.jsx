@@ -1,7 +1,8 @@
-import { BarChart2, Menu, Settings, TrendingUp, TimerReset, Users, Rocket } from "lucide-react";
+import { BarChart2, ChevronsLeft, Settings, TrendingUp, TimerReset, Users, Rocket } from "lucide-react";
 import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Link } from "react-router-dom";
+import logoImage from '/images/katariLogo.png';
 
 const SIDEBAR_ITEMS_TOP = [
     { name: "Tiempo Real", icon: TimerReset, color: "#3B82F6", href: "/realtime" },
@@ -27,7 +28,30 @@ const Sidebar = () => {
             <div className='h-full bg-gray-800 bg-opacity-50 backdrop-blur-md p-4 flex flex-col border-r border-gray-700'>
                 <div className='flex items-center justify-between'>
                     <Link to="/" className='flex items-center'>
-                        <Rocket size={24} className='text-white' />
+                        <AnimatePresence mode="wait">
+                            {isSidebarOpen ? (
+                                <motion.img 
+                                    key="logo"
+                                    src={logoImage} 
+                                    alt="Katari Logo" 
+                                    className="w-8 h-8 object-cover"
+                                    initial={{ opacity: 0, rotate: -180 }}
+                                    animate={{ opacity: 1, rotate: 0 }}
+                                    exit={{ opacity: 0, rotate: 180 }}
+                                    transition={{ duration: 0.3 }}
+                                />
+                            ) : (
+                                <motion.div
+                                    key="rocket"
+                                    initial={{ opacity: 0, rotate: -180 }}
+                                    animate={{ opacity: 1, rotate: 0 }}
+                                    exit={{ opacity: 0, rotate: 180 }}
+                                    transition={{ duration: 0.3 }}
+                                >
+                                    <Rocket size={24} className="text-white-400" />
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
                         <AnimatePresence>
                             {isSidebarOpen && (
                                 <motion.span
@@ -43,12 +67,17 @@ const Sidebar = () => {
                         </AnimatePresence>
                     </Link>
                     <motion.button
-                        whileHover={{ scale: 1.1 }}
-                        whileTap={{ scale: 0.9 }}
+                        whileHover={{ scale: 0.9 }}
+                        whileTap={{ scale: 0.7 }}
                         onClick={() => setIsSidebarOpen(!isSidebarOpen)}
                         className='p-2 rounded-full hover:bg-gray-700 transition-colors max-w-fit'
                     >
-                        <Menu size={24} />
+                        <ChevronsLeft
+                            size={20}
+                            className={`text-white-400 transition-transform duration-300 ${
+                                isSidebarOpen ? '' : 'rotate-180'
+                            }`}
+                        />
                     </motion.button>
                 </div>
 

@@ -10,19 +10,25 @@ const RocketModel = () => {
   const rocketRef = useRef();
   const [angle, setAngle] = useState(0);
 
+  // Obtener datos del giroscopio y altitud (pero sin afectar la posición)
+  const gyroX = data?.sensors?.MPU9250?.readings?.gyroscope?.x?.value || 0;
+  const gyroZ = data?.sensors?.MPU9250?.readings?.gyroscope?.z?.value || 0;
   const currentAltitude = data?.sensors?.BMP280?.readings?.altitude?.value || 0;
 
-  useFrame(({ clock }) => {
-    const t = clock.getElapsedTime();
-
+  useFrame(() => {
     if (rocketRef.current) {
-      const maxTheta = (10 * Math.PI) / 180;
-      const thetaX = Math.sin(t * 0.7) * maxTheta;
-      const thetaZ = Math.sin(t * 0.75) * maxTheta;
+      // Convertir el giro de grados a radianes
+      const thetaX = THREE.MathUtils.degToRad(gyroX);
+      const thetaZ = THREE.MathUtils.degToRad(gyroZ);
 
+      // Aplicar interpolación para suavizar el movimiento
+      rocketRef.current.rotation.x = THREE.MathUtils.lerp(rocketRef.current.rotation.x, thetaX, 0.1);
+      rocketRef.current.rotation.z = THREE.MathUtils.lerp(rocketRef.current.rotation.z, thetaZ, 0.1);
+
+      // Mantener el cohete en la posición (0,0,0)
       rocketRef.current.position.set(0, 0, 0);
-      rocketRef.current.rotation.set(thetaX, 0, thetaZ);
 
+      // Calcular la inclinación total con respecto a la vertical (eje Y)
       const inclinationAngle = Math.sqrt(thetaX ** 2 + thetaZ ** 2) * (180 / Math.PI);
       setAngle(inclinationAngle.toFixed(2));
     }
@@ -31,7 +37,7 @@ const RocketModel = () => {
   return (
     <group>
       <primitive ref={rocketRef} object={scene} scale={1.5} />
-
+      
       {/* Mostrar el ángulo y la altura en pantalla */}
       <Html position={[0, 3, 0]} center>
         <div style={{ color: "white", fontSize: "12px", background: "rgba(0,0,0,0.6)", padding: "5px", borderRadius: "5px" }}>
@@ -52,7 +58,7 @@ const Scene = () => {
   return (
     <Canvas 
       camera={{
-        position: [0, -7, 15], // Cámara más arriba e inclinada
+        position: [0, -7, 15], // Cámara más elevada para ver el eje en la parte inferior
         fov: 50
       }}
     >
@@ -69,11 +75,11 @@ const Scene = () => {
       {/* Ejes X, Y, Z */}
       <Axes />
 
-      {/* Ajustar OrbitControls sin bloquear el giro, pero apuntando más arriba */}
+      {/* Mantener el eje 0,0,0 en la parte inferior */}
       <OrbitControls 
-        target={[0, 3, 0]} // Ajustar el enfoque más arriba
-        minDistance={5} 
-        maxDistance={11} 
+        target={[0, 3, 0]} // Ajustar la vista hacia abajo
+        minDistance={7} 
+        maxDistance={12} 
         enablePan={false} 
       />
     </Canvas>

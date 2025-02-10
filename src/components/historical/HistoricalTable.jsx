@@ -3,6 +3,37 @@ import { Edit, Search, Trash2, Eye, Save, ShieldAlert, ShieldCheck, ShieldX, Arr
 import { useState } from "react";
 import { HISTORICAL_DATA } from './Historical_Data';
 
+// Función para exportar los datos en CSV
+const exportToCSV = () => {
+    const headers = ["Fecha de la prueba", "Aceleración promedio", "Velocidad máxima", "Altura", "Temperatura"];
+    
+    // Convertir datos a formato CSV
+    const csvContent = [
+        headers.join(","), // Encabezados
+        ...HISTORICAL_DATA.map(history => 
+            [
+                history.fecha, 
+                history.aceleracion, 
+                history.velocidad, 
+                history.altura, 
+                history.temperatura
+            ].join(",")
+        )
+    ].join("\n");
+
+    // Crear un Blob y generar la URL de descarga
+    const blob = new Blob([csvContent], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+
+    // Crear un enlace de descarga
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "historical_data.csv";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+};
+
 const HistoricalTable = () => {
     const [searchTerm, setSearchTerm] = useState("");
     const [filteredHistorical, setFilteredHistorical] = useState(HISTORICAL_DATA);
@@ -79,7 +110,7 @@ const HistoricalTable = () => {
                         />
                         <Search className='absolute left-3 top-2.5 text-gray-400' size={18} />
                     </div>
-                    <button className='text-green-400 hover:text-green-300'>
+                    <button className='text-green-400 hover:text-green-300' onClick={exportToCSV}>
                         <Save size={24} />
                     </button>
                 </div>
@@ -212,12 +243,9 @@ const HistoricalTable = () => {
 											<button className='text-blue-400 hover:text-blue-300'>
 												<Eye size={18} />
 											</button>
-											<button className='text-green-400 hover:text-green-300'>
+											<button className='text-green-400 hover:text-green-300' onClick={exportToCSV}>
 												<Save size={18} />
-											</button>
-											<button className='text-indigo-400 hover:text-indigo-300'>
-												<Edit size={18} />
-											</button>
+											</button>											
 											<button className='text-red-400 hover:text-red-300 '>
 												<Trash2 size={18} />
 											</button>

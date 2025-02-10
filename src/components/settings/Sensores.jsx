@@ -2,6 +2,7 @@ import { useState } from "react";
 import SettingSection from "./SettingSection";
 import { Bell, Plus, Settings } from "lucide-react";
 import ToggleSwitch from "./ToggleSwitch";
+import Alert from '../common/Alert';
 
 const Sensores = () => {
 	const [sensores, setSensores] = useState({
@@ -11,6 +12,7 @@ const Sensores = () => {
 		aire: true,
 		camara: false,
 	});
+	const [showAlert, setShowAlert] = useState(false);
 	const handleSettingsClick = (sensorlabel) => {
 		alert(`Configuración de ${sensorlabel} en construcción`);
 	};
@@ -39,9 +41,19 @@ const Sensores = () => {
 					onSettingsClick={() => handleSettingsClick(sensor.label)}
 				/>
 			))}
-			<button className="mt-4 flex items-center text-indigo-400 hover:text-indigo-300 transition duration-200">
-				<Plus size={18} className="mr-2" /> Adicionar Sensor
-			</button>
+			<button 
+                onClick={() => setShowAlert(true)}
+                className="mt-4 flex items-center text-indigo-400 hover:text-indigo-300 transition duration-200"
+            >
+            <Plus size={18} className="mr-2" /> Agregar Sensor
+            </button>
+
+            <Alert 
+                title="Aviso"
+                message="Inicie sesión para adicionar sensores"
+                isVisible={showAlert}
+                onClose={() => setShowAlert(false)}
+            />
 		</SettingSection>
 	);
 };
