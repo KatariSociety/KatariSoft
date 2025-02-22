@@ -5,8 +5,8 @@ import * as THREE from "three";
 import { useSensorsData } from "../../context/SensorsData";
 
 const RocketModel = () => {
-  const { data } = useSensorsData();
-  const { scene } = useGLTF("/images/rocket.glb");
+  const { data } = useSensorsData();  
+  const { scene } = useGLTF(import.meta.env.BASE_URL + "images/rocket.glb");
   const rocketRef = useRef();
   const [angle, setAngle] = useState(0);
 
@@ -63,7 +63,7 @@ const Scene = () => {
       }}
     >
       {/* Fondo HDR */}
-      <Environment files="/images/sky.hdr" background />
+      <Environment files={import.meta.env.BASE_URL + "images/sky.hdr"} background />
 
       <ambientLight intensity={0.4} />
       <directionalLight position={[5, 10, 5]} intensity={1} castShadow />

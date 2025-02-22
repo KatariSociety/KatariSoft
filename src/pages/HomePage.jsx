@@ -19,7 +19,7 @@ const HomePage = () => {
                         transition={{ duration: 0.5, delay: 0.2 }}
                     >
                         <img
-                            src='/src/assets/katari_society.jpeg'
+                            src={import.meta.env.BASE_URL + 'images/katari_society.jpeg'}
                             alt='Katari Society'
                             className='w-full lg:w-1/2 h-auto object-cover rounded-lg shadow-lg'
                         />
@@ -57,7 +57,7 @@ const HomePage = () => {
                         transition={{ duration: 0.5, delay: 0.2 }}
                     >
                         <img
-                            src='/src/assets/amaru.png'
+                            src={import.meta.env.BASE_URL + 'images/amaru.png'}
                             alt='Amaru'
                             className='w-full lg:w-1/3 h-auto object-cover rounded-lg shadow-lg'
                         />
@@ -83,7 +83,7 @@ const HomePage = () => {
                             </p>
                         </div>
                         <img
-                            src='/src/assets/tapirus.png'
+                            src={import.meta.env.BASE_URL + 'images/tapirus.png'}
                             alt='Tapirus'
                             className='w-full lg:w-1/3 h-auto object-cover rounded-lg shadow-lg'
                         />
