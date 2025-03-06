@@ -2,6 +2,7 @@ import { motion } from "framer-motion";
 import { Edit, Search, Trash2, Eye, Save, ShieldAlert, ShieldCheck, ShieldX, ArrowUp, ArrowDown  } from "lucide-react";
 import { useState } from "react";
 import { HISTORICAL_DATA } from './Historical_Data';
+import Alert from '../common/Alert';
 
 // Función para exportar los datos en CSV
 const exportToCSV = () => {
@@ -35,6 +36,7 @@ const exportToCSV = () => {
 };
 
 const HistoricalTable = () => {
+	const [showAlert, setShowAlert] = useState(false);
     const [searchTerm, setSearchTerm] = useState("");
     const [filteredHistorical, setFilteredHistorical] = useState(HISTORICAL_DATA);
     const [sortOrder, setSortOrder] = useState("asc");
@@ -97,24 +99,31 @@ const HistoricalTable = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
         >
-            <div className='flex justify-between items-center mb-6'>
-                <h2 className='text-xl font-semibold text-gray-100'>Registros almacenados</h2>
-                <div className='flex items-center space-x-2'>
-                    <div className='relative'>
-                        <input
-                            type='text'
-                            placeholder='Buscar registro...'
-                            className='bg-gray-700 text-white placeholder-gray-400 rounded-lg pl-10 pr-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500'
-                            onChange={handleSearch}
-                            value={searchTerm}
-                        />
-                        <Search className='absolute left-3 top-2.5 text-gray-400' size={18} />
-                    </div>
-                    <button className='text-green-400 hover:text-green-300' onClick={exportToCSV}>
-                        <Save size={24} />
-                    </button>
-                </div>
-            </div>
+            <div className='flex flex-col sm:flex-row justify-between items-center mb-6 space-y-4 sm:space-y-0'>
+				<h2 className='text-xl font-semibold text-gray-100 w-full sm:w-auto text-center sm:text-left mb-4 sm:mb-0'>
+					Registros almacenados
+				</h2>
+				<div className='flex w-full sm:w-auto items-center gap-2'>
+					<div className='relative flex-1 sm:flex-none'>
+						<input
+							type='text'
+							placeholder='Buscar registro...'
+							className='w-full sm:w-64 bg-gray-700 text-white placeholder-gray-400 rounded-lg pl-10 pr-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500'
+							onChange={handleSearch}
+							value={searchTerm}
+						/>
+						<Search className='absolute left-3 top-2.5 text-gray-400' size={18} />
+					</div>
+					<motion.button 
+						className='min-w-[40px] h-[40px] bg-gray-700 hover:bg-gray-600 text-green-400 hover:text-green-300 rounded-lg transition-colors flex items-center justify-center'
+						whileHover={{ scale: 1.05 }}
+						whileTap={{ scale: 0.95 }}
+						onClick={exportToCSV}
+					>
+						<Save size={20} />
+					</motion.button>
+				</div>
+			</div>
 
             <div className='flex justify-between items-center mb-6'>
 				<div>
@@ -246,7 +255,10 @@ const HistoricalTable = () => {
 											<button className='text-green-400 hover:text-green-300' onClick={exportToCSV}>
 												<Save size={18} />
 											</button>											
-											<button className='text-red-400 hover:text-red-300 '>
+											<button 
+												className='text-red-400 hover:text-red-300'
+												onClick={() => setShowAlert(true)}
+											>
 												<Trash2 size={18} />
 											</button>
 										</div>
@@ -257,6 +269,12 @@ const HistoricalTable = () => {
                     </tbody>
                 </table>
             </div>
+			<Alert 
+                title="Aviso"
+                message="Inicie sesión para realizar esta acción"
+                isVisible={showAlert}
+                onClose={() => setShowAlert(false)}
+            />
         </motion.div>
     );
 };

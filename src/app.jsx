@@ -12,6 +12,7 @@ import HistoricalPage from "./pages/HistoricalPage";
 import UsersPage from "./pages/UsersPage";
 import DashboardPage from "./pages/DashboardPage";
 import SettingsPage from "./pages/SettingsPage";
+import LoginPage from './pages/LoginPage';
 
 function App() {
   const basePath = '/katarisoft';
@@ -32,6 +33,7 @@ function App() {
           <Route path={`${basePath}/users`} element={<UsersPage />} />
           <Route path={`${basePath}/dashboard`} element={<DashboardPage />} />
           <Route path={`${basePath}/settings`} element={<SettingsPage />} />
+          <Route path={`${basePath}/login`} element={<LoginPage />} />
         </Routes>
       </div>
     </SensorsDataProvider>

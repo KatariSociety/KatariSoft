@@ -1,4 +1,4 @@
-import { BarChart2, ChevronsLeft, Settings, TrendingUp, TimerReset, Users, Rocket } from "lucide-react";
+import { BarChart2, ChevronsLeft, Settings, TrendingUp, TimerReset, Users, Rocket, LogIn } from "lucide-react";
 import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Link } from "react-router-dom";
@@ -13,6 +13,7 @@ const SIDEBAR_ITEMS_TOP = [
 const SIDEBAR_ITEMS_BOTTOM = [
     { name: "Integrantes", icon: Users, color: "#EC4899", href: "/katarisoft/users" },
     { name: "Settings", icon: Settings, color: "#6EE7B7", href: "/katarisoft/settings" },
+    { name: "Login", icon: LogIn, color: "#3B82F6", href: "/katarisoft/login" },
 ];
 
 const Sidebar = () => {

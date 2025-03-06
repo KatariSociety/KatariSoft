@@ -1,8 +1,13 @@
 import { motion } from "framer-motion";
 import { useState } from "react";
 
-const Actions = ({ onStart, onStop }) => {
+const Actions = ({ onStart, onStop, isSimulating }) => {
     const [isModalOpen, setIsModalOpen] = useState(false);
+
+    const handleStartSimulation = () => {
+        onStart();
+        setIsModalOpen(false);
+    };
 
     return (
         <>
@@ -13,18 +18,28 @@ const Actions = ({ onStart, onStop }) => {
                 transition={{ duration: 0.5, delay: 0.2 }}
             >
                 <motion.button
-                    className="bg-blue-600 text-white py-2 px-4 rounded flex-1 shadow-md"
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    onClick={() => setIsModalOpen(true)} // Abre el modal
+                    className={`text-white py-2 px-4 rounded flex-1 shadow-md ${
+                        isSimulating 
+                        ? 'bg-gray-400 cursor-not-allowed' 
+                        : 'bg-blue-600 hover:bg-blue-500'
+                    }`}
+                    whileHover={{ scale: isSimulating ? 1 : 1.05 }}
+                    whileTap={{ scale: isSimulating ? 1 : 0.95 }}
+                    onClick={() => !isSimulating && setIsModalOpen(true)}
+                    disabled={isSimulating}
                 >
-                    Iniciar
+                    {isSimulating ? 'Corriendo' : 'Iniciar'}
                 </motion.button>
                 <motion.button
-                    className="bg-red-600 text-white py-2 px-4 rounded flex-1 shadow-md"
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
+                    className={`text-white py-2 px-4 rounded flex-1 shadow-md ${
+                        !isSimulating 
+                        ? 'bg-gray-400 cursor-not-allowed' 
+                        : 'bg-red-600 hover:bg-red-500'
+                    }`}
+                    whileHover={{ scale: !isSimulating ? 1 : 1.05 }}
+                    whileTap={{ scale: !isSimulating ? 1 : 0.95 }}
                     onClick={onStop}
+                    disabled={!isSimulating}
                 >
                     Detener
                 </motion.button>
@@ -51,10 +66,7 @@ const Actions = ({ onStart, onStop }) => {
                         </button>
                         <button
                             className="w-full bg-blue-600 hover:bg-blue-500 text-white py-2 px-4 rounded mb-4 shadow-md"
-                            onClick={() => {
-                                onStart(); // Llama a la función de inicio
-                                setIsModalOpen(false); // Cierra el modal
-                            }}
+                            onClick={handleStartSimulation}
                         >
                             📊 Iniciar utilizando datos simulados
                         </button>
