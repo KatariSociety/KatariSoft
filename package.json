@@ -8,8 +8,10 @@
     "build": "vite build",
     "lint": "eslint . --ext js,jsx --report-unused-disable-directives --max-warnings 0",
     "serve": "vite preview",
-    "predeploy": "npm run build",
-    "deploy": "gh-pages -d dist"
+    "predeploy": "DEPLOY_TARGET=gh-pages npm run build",
+    "deploy:gh": "gh-pages -d dist",
+    "build:vercel": "vite build",
+    "deploy:vercel": "vercel"
   },
   "keywords": [],
   "author": "Jarby Daniel",

@@ -15,7 +15,8 @@ import SettingsPage from "./pages/SettingsPage";
 import LoginPage from './pages/LoginPage';
 
 function App() {
-  const basePath = '/katarisoft';
+  const isGitHubPages = window.location.hostname.includes('github.io');
+  const basePath = isGitHubPages ? '/katarisoft' : '';
 
   return (
     <SensorsDataProvider>
