@@ -4,21 +4,20 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import logoImage from '/images/katariLogo.png';
 
-const SIDEBAR_ITEMS_TOP = [
-    { name: "Tiempo Real", icon: TimerReset, color: "#3B82F6", href: "/katarisoft/realtime" },
-    { name: "Dashboard", icon: TrendingUp, color: "#6366f1", href: "/katarisoft/dashboard" },
-    { name: "Histórico", icon: BarChart2, color: "#8B5CF6", href: "/katarisoft/historical" },
-];
-
-const SIDEBAR_ITEMS_BOTTOM = [
-    { name: "Integrantes", icon: Users, color: "#EC4899", href: "/katarisoft/users" },
-    { name: "Settings", icon: Settings, color: "#6EE7B7", href: "/katarisoft/settings" },
-    { name: "Login", icon: LogIn, color: "#3B82F6", href: "/katarisoft/login" },
-];
-
-const Sidebar = () => {
+const Sidebar = ({ basePath = '' }) => {
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
+    const SIDEBAR_ITEMS_TOP = [
+        { name: "Tiempo Real", icon: TimerReset, color: "#3B82F6", href: `${basePath}/realtime` },
+        { name: "Dashboard", icon: TrendingUp, color: "#6366f1", href: `${basePath}/dashboard` },
+        { name: "Histórico", icon: BarChart2, color: "#8B5CF6", href: `${basePath}/historical` },
+    ];
+
+    const SIDEBAR_ITEMS_BOTTOM = [
+        { name: "Integrantes", icon: Users, color: "#EC4899", href: `${basePath}/users` },
+        { name: "Settings", icon: Settings, color: "#6EE7B7", href: `${basePath}/settings` },
+        { name: "Login", icon: LogIn, color: "#3B82F6", href: `${basePath}/login` },
+    ];
     return (
         <motion.div
             className={`relative z-10 transition-all duration-300 ease-in-out flex-shrink-0 ${
@@ -28,7 +27,7 @@ const Sidebar = () => {
         >
             <div className='h-full bg-gray-800 bg-opacity-50 backdrop-blur-md p-4 flex flex-col border-r border-gray-700'>
                 <div className='flex items-center justify-between'>
-                    <Link to="/katarisoft/" className='flex items-center'>
+                    <Link to={`${basePath}/`} className='flex items-center'>
                         <AnimatePresence mode="wait">
                             {isSidebarOpen ? (
                                 <motion.img 

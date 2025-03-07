@@ -26,7 +26,7 @@ function App() {
           <div className='absolute inset-0 backdrop-blur-sm' />
         </div>
 
-        <Sidebar />
+        <Sidebar basePath={basePath} />
         <Routes>
           <Route path={`${basePath}/`} element={<HomePage />} />
           <Route path={`${basePath}/realtime`} element={<RealTimePage />} />
