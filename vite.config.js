@@ -4,7 +4,6 @@ import { resolve } from 'path';
 
 export default defineConfig(({ mode, command }) => {
   const isGitHubPages = process.env.DEPLOY_TARGET === 'gh-pages';
-  const isVercel = process.env.VERCEL === '1';
   
   return {
     base: isGitHubPages ? '/katarisoft/' : '/',
@@ -14,6 +13,7 @@ export default defineConfig(({ mode, command }) => {
       emptyOutDir: true,
     },
     server: {
+      historyApiFallback: true,
       proxy: mode === 'development' ? {
         '/api': 'http://localhost:3000',
       } : {},

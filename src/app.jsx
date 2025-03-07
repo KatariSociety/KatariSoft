@@ -28,7 +28,7 @@ function App() {
 
         <Sidebar basePath={basePath} />
         <Routes>
-          <Route path={`${basePath}/`} element={<HomePage />} />
+          <Route path={`${basePath}/*`} element={<HomePage />} />
           <Route path={`${basePath}/realtime`} element={<RealTimePage />} />
           <Route path={`${basePath}/historical`} element={<HistoricalPage />} />
           <Route path={`${basePath}/users`} element={<UsersPage />} />
