@@ -1,11 +1,27 @@
 import { motion } from "framer-motion";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSensorsData } from "../../context/SensorsData";
 
 const Actions = ({ onStart, onStop, isSimulating }) => {
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const { isArduinoConnected } = useSensorsData();
+    const [connectionStatus, setConnectionStatus] = useState("Comprobando...");
+
+    // Mostrar el estado de la conexión para depuración
+    useEffect(() => {
+        setConnectionStatus(isArduinoConnected 
+            ? "Hardware conectado ✓" 
+            : "Hardware no conectado ✗");
+        console.log("Estado de Hardware en Actions:", isArduinoConnected);
+    }, [isArduinoConnected]);
 
     const handleStartSimulation = () => {
-        onStart();
+        onStart(false); // Usar datos simulados
+        setIsModalOpen(false);
+    };
+    
+    const handleStartUnitTest = () => {
+        onStart('unitTest'); // Modo especial: solo MPU real, resto simulado
         setIsModalOpen(false);
     };
 
@@ -58,11 +74,26 @@ const Actions = ({ onStart, onStop, isSimulating }) => {
                         animate={{ scale: 1 }}
                     >
                         <h2 className="text-xl font-semibold text-white mb-4">Selecciona el tipo de inicio</h2>
+                        
+                        {/* Indicador de estado de Arduino para depuración */}
+                        <div className={`mb-3 p-2 text-sm rounded text-center ${
+                            isArduinoConnected ? 'bg-green-600/20 text-green-400' : 'bg-red-600/20 text-red-400'
+                        }`}>
+                            {connectionStatus}
+                        </div>
+                        
                         <button className="w-full bg-gray-700 text-gray-400 py-2 px-4 rounded mb-2 cursor-not-allowed" disabled>
                             🚀 Iniciar misión completa (Dispositivos NO detectados)
                         </button>
-                        <button className="w-full bg-gray-700 text-gray-400 py-2 px-4 rounded mb-2 cursor-not-allowed" disabled>
-                            🛠️ Iniciar prueba unitaria (Dispositivos NO detectados)
+                        <button
+                            className={`w-full ${isArduinoConnected 
+                                ? 'bg-green-600 hover:bg-green-500 text-white' 
+                                : 'bg-gray-700 text-gray-400 cursor-not-allowed'} 
+                                py-2 px-4 rounded mb-2 shadow-md`}
+                            onClick={handleStartUnitTest}
+                            disabled={!isArduinoConnected}
+                        >
+                            🛠️ Iniciar prueba unitaria {isArduinoConnected ? '(Conectado)' : '(No conectado)'}
                         </button>
                         <button
                             className="w-full bg-blue-600 hover:bg-blue-500 text-white py-2 px-4 rounded mb-4 shadow-md"
