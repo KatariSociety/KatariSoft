@@ -7,7 +7,7 @@ import io from 'socket.io-client';  // Importar io directamente
 
 // Aceptar prop testMode para indicar si estamos en prueba unitaria
 const RocketModel = ({ testMode }) => {
-  const { data } = useSensorsData();  
+  const { data, activeMode } = useSensorsData();  
   const { scene } = useGLTF(import.meta.env.BASE_URL + "images/rocket.glb");
   const rocketRef = useRef();
   const [angle, setAngle] = useState(0);
@@ -26,15 +26,13 @@ const RocketModel = ({ testMode }) => {
   // Conectar directamente a Socket.io cuando estamos en modo prueba unitaria
   useEffect(() => {
     if (testMode === 'unitTest') {
-      console.log("🔌 Conectando Socket.io directamente en SimulationCanSat para prueba unitaria");
-      
-      // IMPORTANTE: Usar un puerto diferente para evitar conflicto con el contexto global
-      // O usar una señal para indicar que este componente tiene control exclusivo
+      console.log("🧪 SimulationCanSat: Activando conexión directa para prueba unitaria");
       
       if (socketRef.current) {
         socketRef.current.disconnect();
       }
       
+      // Conexión exclusiva para prueba unitaria
       socketRef.current = io('http://localhost:3000', {
         query: { 
           clientType: 'unitTest', 
@@ -43,26 +41,64 @@ const RocketModel = ({ testMode }) => {
       });
       
       socketRef.current.on('connect', () => {
-        console.log("🔌 Socket conectado directamente en componente para prueba unitaria");
-        socketRef.current.emit('register_unit_test');  // Evento especial para prueba unitaria
+        console.log("🔌 Socket conectado directamente para prueba unitaria");
+
+        // Solicitar conexión explícita al Arduino
         socketRef.current.emit('connect_arduino', { forceExclusive: true });
       });
       
+      // Recibir datos del MPU directamente desde el servidor
+
       socketRef.current.on('mpu_data', (mpuData) => {
-        console.log("📊 Datos MPU recibidos en modo prueba unitaria:", 
-          mpuData.readings.gyroscope.x.value, 
-          mpuData.readings.gyroscope.z.value
-        );
-        
-        // Actualizar estado local con los datos recibidos
-        setLocalMPUData({
-          gyroX: parseFloat(mpuData.readings.gyroscope.x.value),
-          gyroY: parseFloat(mpuData.readings.gyroscope.y.value),
-          gyroZ: parseFloat(mpuData.readings.gyroscope.z.value),
-          accelX: parseFloat(mpuData.readings.accelerometer.x.value),
-          accelY: parseFloat(mpuData.readings.accelerometer.y.value),
-          accelZ: parseFloat(mpuData.readings.accelerometer.z.value)
-        });
+        try {
+          // Parsear los datos si vienen como string
+          let parsedData = mpuData;
+          if (typeof mpuData === 'string') {
+            try {
+              parsedData = JSON.parse(mpuData);
+              console.log("Datos JSON parseados correctamente");
+            } catch (parseError) {
+              console.error("Error parseando datos JSON:", parseError);
+            }
+          }
+          
+          // Imprime los datos recibidos para depuración
+          console.log("%c 📊 DATOS MPU RECIBIDOS EN SIMULATIONCANSAT", 
+            "background-color: #10b981; color: white; padding: 4px 8px; border-radius: 4px;"
+          );
+          console.log(parsedData);
+          
+          // Verificación del objeto ya parseado
+          if (!parsedData || typeof parsedData !== 'object') {
+            throw new Error('Formato de datos incorrecto - no es un objeto');
+          }
+          
+          // Extraer y parsear valores con manejo seguro de valores nulos/undefined
+          const gyroX = parseFloat(parsedData.gyroscope?.x?.value || 0);
+          const gyroY = parseFloat(parsedData.gyroscope?.y?.value || 0);
+          const gyroZ = parseFloat(parsedData.gyroscope?.z?.value || 0);
+          const accelX = parseFloat(parsedData.accelerometer?.x?.value || 0);
+          const accelY = parseFloat(parsedData.accelerometer?.y?.value || 0);
+          const accelZ = parseFloat(parsedData.accelerometer?.z?.value || 0);
+          
+          // Actualizar estado local con los datos recibidos
+          setLocalMPUData({
+            gyroX: isNaN(gyroX) ? 0 : gyroX,
+            gyroY: isNaN(gyroY) ? 0 : gyroY,
+            gyroZ: isNaN(gyroZ) ? 0 : gyroZ,
+            accelX: isNaN(accelX) ? 0 : accelX,
+            accelY: isNaN(accelY) ? 0 : accelY,
+            accelZ: isNaN(accelZ) ? 0 : accelZ
+          });
+          
+          // Mostrar valores procesados
+          console.log("Valores MPU procesados:", {
+            gyroscope: { x: gyroX, y: gyroY, z: gyroZ },
+            accelerometer: { x: accelX, y: accelY, z: accelZ }
+          });
+        } catch (error) {
+          console.error("Error procesando datos MPU:", error, mpuData);
+        }
       });
       
       // Manejar errores explícitamente
@@ -70,11 +106,10 @@ const RocketModel = ({ testMode }) => {
         console.error("🔴 Error en socket de prueba unitaria:", error);
       });
       
-      // Cleanup al cambiar modo o desmontar componente
+      // Cleanup
       return () => {
         if (socketRef.current) {
-          console.log("🔌 Desconectando Socket.io en prueba unitaria");
-          socketRef.current.emit('release_unit_test');  // Liberar el control exclusivo
+          console.log("🧹 Limpieza: Desconectando socket de prueba unitaria");
           socketRef.current.disconnect();
           socketRef.current = null;
         }
@@ -93,22 +128,21 @@ const RocketModel = ({ testMode }) => {
   const accelY = testMode === 'unitTest' ? localMPUData.accelY : Number(data?.sensors?.MPU9250?.readings?.accelerometer?.y?.value) || 0;
   const accelZ = testMode === 'unitTest' ? localMPUData.accelZ : Number(data?.sensors?.MPU9250?.readings?.accelerometer?.z?.value) || 0;
 
-  // Registro para debug
+  // Registro para debug cuando los valores cambian
   useEffect(() => {
     if (testMode === 'unitTest') {
-      console.log(`🛰️ SimulationCanSat recibiendo valores - Gyro X: ${gyroX}, Z: ${gyroZ}`);
+      console.log(`🛰️ Actualizando visualización con Gyro X: ${gyroX.toFixed(2)}, Z: ${gyroZ.toFixed(2)}`);
     }
   }, [gyroX, gyroZ, testMode]);
 
   useFrame(() => {
     if (rocketRef.current) {
       if (testMode === 'unitTest') {
-        // EN MODO PRUEBA UNITARIA:
+        // MODO PRUEBA UNITARIA: Sin restricciones en los ángulos
         const thetaX = THREE.MathUtils.degToRad(gyroX);
         const thetaZ = THREE.MathUtils.degToRad(gyroZ);
         
-        // Aplicación más directa con menos suavizado para una respuesta inmediata
-        // Usar un factor de suavizado más alto (0.5) para respuesta más rápida
+        // Factor de respuesta más rápido para prueba unitaria
         const directFactor = 0.5;
         
         rocketRef.current.rotation.x = THREE.MathUtils.lerp(
@@ -119,12 +153,11 @@ const RocketModel = ({ testMode }) => {
           rocketRef.current.rotation.z, thetaZ, directFactor
         );
         
-        // Calcular ángulo de inclinación real sin restricciones
+        // Calcular ángulo de inclinación
         const inclinationAngle = Math.sqrt(thetaX ** 2 + thetaZ ** 2) * (180 / Math.PI);
         setAngle(inclinationAngle.toFixed(2));
       } else {
-        // MODO SIMULACIÓN:
-        // Mantener el comportamiento anterior con restricciones para la simulación
+        // MODO SIMULACIÓN: Con restricciones de ángulos
         const thetaX = THREE.MathUtils.degToRad(Math.min(Math.max(gyroX, -10), 10));
         const thetaZ = THREE.MathUtils.degToRad(Math.min(Math.max(gyroZ, -10), 10));
         
@@ -181,6 +214,8 @@ const RocketModel = ({ testMode }) => {
     </group>
   );
 };
+
+// Resto del código igual...
 
 // Componente para visualizar los ejes X, Y, Z
 const Axes = () => {

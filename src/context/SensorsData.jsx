@@ -55,7 +55,14 @@ const initialData = {
 };
 
 // Función para generar datos simulados
+// En la función generateRandomData, actualiza para que tenga un formato más similar a los datos reales:
+
 const generateRandomData = (currentAltitude) => {
+    // Generar valores simulados con un patrón de variación realista
+    const randomGyroX = ((Math.sin(Date.now() / 1000) * 5) + (Math.random() * 2 - 1)).toFixed(2);
+    const randomGyroY = ((Math.cos(Date.now() / 1500) * 3) + (Math.random() * 2 - 1)).toFixed(2);
+    const randomGyroZ = ((Math.sin(Date.now() / 2000) * 4) + (Math.random() * 2 - 1)).toFixed(2);
+    
     return {
         timestamp: new Date().toISOString(),
         sensors: {
@@ -82,14 +89,14 @@ const generateRandomData = (currentAltitude) => {
                 timestamp: new Date().toISOString(),
                 readings: {
                     accelerometer: {
-                        x: { value: (Math.random() * 2 - 1).toFixed(2), unit: "g" },
-                        y: { value: (Math.random() * 2 - 1).toFixed(2), unit: "g" },
-                        z: { value: (Math.random() * 2 - 1).toFixed(2), unit: "g" }
+                        x: { value: ((Math.random() * 0.4 - 0.2) - 0.19).toFixed(2), unit: "g" },
+                        y: { value: ((Math.random() * 0.02 - 0.01) - 0.01).toFixed(2), unit: "g" },
+                        z: { value: ((Math.random() * 0.1) + 1.0).toFixed(2), unit: "g" }
                     },
                     gyroscope: {
-                        x: { value: ((Math.random() * 2 - 1) * MAX_GYRO_ANGLE).toFixed(2), unit: "dps" },
-                        y: { value: ((Math.random() * 2 - 1) * MAX_GYRO_ANGLE).toFixed(2), unit: "dps" },
-                        z: { value: ((Math.random() * 2 - 1) * MAX_GYRO_ANGLE).toFixed(2), unit: "dps" }
+                        x: { value: randomGyroX, unit: "dps" },
+                        y: { value: randomGyroY, unit: "dps" },
+                        z: { value: randomGyroZ, unit: "dps" }
                     }
                 }
             },
@@ -138,7 +145,6 @@ export const SensorsDataProvider = ({ children }) => {
             console.log('🔌 Estado del Arduino recibido:', status);
             
             // Solo actualizar el estado si realmente hay un cambio
-            // para evitar actualizaciones innecesarias
             setIsArduinoConnected(prev => {
                 if (prev !== status.connected) {
                     console.log(`Arduino cambió de ${prev ? 'conectado' : 'desconectado'} a ${status.connected ? 'conectado' : 'desconectado'}`);
@@ -148,55 +154,80 @@ export const SensorsDataProvider = ({ children }) => {
             });
         });
         
-        // Escuchar cuando el modo unitTest toma control exclusivo
-        socketRef.current.on('unit_test_active', () => {
-            console.log('⚠️ Modo prueba unitaria activado en otro componente');
-            // Podemos suspender temporalmente nuestra conexión cuando la prueba unitaria está activa
-        });
-        
-        socketRef.current.on('unit_test_released', () => {
-            console.log('✅ Modo prueba unitaria finalizado, restaurando conexión normal');
-            // Reiniciar nuestra conexión después de que la prueba unitaria termina
-            socketRef.current.emit('connect_arduino');
-        });
-        
-        // Configurar handler MPU para modo normal (no unitTest)
-        // Este manejador solo se usa cuando NO estamos en modo prueba unitaria
+        // Escuchar datos MPU - Modificado para aceptar datos en modo unitTest
+
         socketRef.current.on('mpu_data', (mpuData) => {
-            // Si estamos en modo prueba unitaria, no procesamos los datos aquí
-            // ya que SimulationCanSat.jsx los maneja directamente
+        // console.log("Entro aqui - Recibido:", typeof mpuData); //Recibe un string
+        
+        // Parsear los datos si vienen como string
+        let parsedData = mpuData;
+        if (typeof mpuData === 'string') {
+            try {
+            parsedData = JSON.parse(mpuData);
+            // console.log("Datos JSON parseados correctamente en contexto");
+            } catch (parseError) {
+            console.error("Error parseando datos JSON en contexto:", parseError);
+            }
+        }
+        
+        // Procesamos datos MPU si useRealMPU está activo
+        if (useRealMPU) {
+            // Extraer datos parseados
+            const accelX = parseFloat(parsedData?.accelerometer?.x?.value || 0);
+            const accelY = parseFloat(parsedData?.accelerometer?.y?.value || 0);
+            const accelZ = parseFloat(parsedData?.accelerometer?.z?.value || 0);
+            const gyroX = parseFloat(parsedData?.gyroscope?.x?.value || 0);
+            const gyroY = parseFloat(parsedData?.gyroscope?.y?.value || 0);
+            const gyroZ = parseFloat(parsedData?.gyroscope?.z?.value || 0);
+            
+            // Log especial cuando estamos en modo unitTest
             if (activeMode === 'unitTest') {
-                return;
+            console.log("%c 🧪 MPU DATOS REALES - CONTEXTO", 
+                "background-color: #3b82f6; color: white; padding: 4px 8px; border-radius: 4px;"
+            );
+            
+            // Tabla con los valores procesados
+            console.table({
+                accelerometer: {
+                x: accelX,
+                y: accelY,
+                z: accelZ,
+                },
+                gyroscope: {
+                x: gyroX,
+                y: gyroY,
+                z: gyroZ,
+                }
+            });
+            } else {
+            console.log("✅ Actualizando datos reales del MPU");
             }
             
-            if (useRealMPU) {
-                console.log("✅ Actualizando datos reales del MPU (modo normal)");
-                
-                setData(prevData => {
-                    // Crear copia para no modificar el estado directamente
-                    const newData = JSON.parse(JSON.stringify(prevData));
-                    
-                    // Actualizar SOLO el sensor MPU9250
-                    newData.sensors.MPU9250 = {
-                        sensor_id: mpuData.sensor_id,
-                        timestamp: new Date().toISOString(),
-                        readings: {
-                            accelerometer: {
-                                x: { value: parseFloat(mpuData.readings.accelerometer.x.value), unit: "g" },
-                                y: { value: parseFloat(mpuData.readings.accelerometer.y.value), unit: "g" },
-                                z: { value: parseFloat(mpuData.readings.accelerometer.z.value), unit: "g" }
-                            },
-                            gyroscope: {
-                                x: { value: parseFloat(mpuData.readings.gyroscope.x.value), unit: "dps" },
-                                y: { value: parseFloat(mpuData.readings.gyroscope.y.value), unit: "dps" },
-                                z: { value: parseFloat(mpuData.readings.gyroscope.z.value), unit: "dps" }
-                            }
-                        }
-                    };
-                    
-                    return newData;
-                });
-            }
+            setData(prevData => {
+            // Crear copia para no modificar el estado directamente
+            const newData = JSON.parse(JSON.stringify(prevData));
+            
+            // Actualizar SOLO el sensor MPU9250
+            newData.sensors.MPU9250 = {
+                sensor_id: parsedData.sensor_id || "MPU_9250_K1",
+                timestamp: new Date().toISOString(),
+                readings: {
+                accelerometer: {
+                    x: { value: accelX, unit: "g" },
+                    y: { value: accelY, unit: "g" },
+                    z: { value: accelZ, unit: "g" }
+                },
+                gyroscope: {
+                    x: { value: gyroX, unit: "dps" },
+                    y: { value: gyroY, unit: "dps" },
+                    z: { value: gyroZ, unit: "dps" }
+                }
+                }
+            };
+            
+            return newData;
+            });
+        }
         });
         
         // Manejar desconexiones
@@ -217,7 +248,7 @@ export const SensorsDataProvider = ({ children }) => {
                 socketRef.current.disconnect();
             }
         };
-    }, []); // Sin dependencias para evitar reconexiones innecesarias
+    }, [activeMode, useRealMPU]); // Añadido useRealMPU como dependencia
 
     // Función para iniciar con datos reales del Arduino (modo normal)
     const startWithRealData = () => {
@@ -288,6 +319,7 @@ export const SensorsDataProvider = ({ children }) => {
     };
 
     // Función para iniciar los datos simulados con opción para modo de prueba unitaria
+    // Modificada para usar datos reales del MPU en modo unitTest
     const startGeneratingData = (mode = false) => {
         console.log("🔄 Iniciando generación de datos, modo:", mode);
         
@@ -296,16 +328,14 @@ export const SensorsDataProvider = ({ children }) => {
             intervalRef.current = null;
         }
         
-        // MODO PRUEBA UNITARIA - Ahora simplificado
+        // MODO PRUEBA UNITARIA
         if (mode === 'unitTest') {
-            console.log("🧪 Activando modo PRUEBA UNITARIA MPU");
+            console.log("%c 🧪 INICIANDO MODO PRUEBA UNITARIA CON MPU REAL", "background-color: #10b981; color: white; font-size: 14px; padding: 5px; border-radius: 4px;");
             setActiveMode('unitTest');
-            
-            // Ya no necesitamos activar useRealMPU aquí porque SimulationCanSat.jsx 
-            // maneja su propia conexión Socket.io
             setUseSimulation(false);
+            setUseRealMPU(true); // Activar uso de datos reales del MPU
             
-            // Sólo actualizamos datos de otros sensores excepto MPU
+            // Solo actualizamos datos de otros sensores (altura, presión, etc.)
             intervalRef.current = setInterval(() => {
                 setCurrentAltitude(prevAltitude => {
                     const newAltitude = prevAltitude + 17;
@@ -314,15 +344,15 @@ export const SensorsDataProvider = ({ children }) => {
                         const newData = JSON.parse(JSON.stringify(prevData));
                         newData.timestamp = new Date().toISOString();
                         
-                        // NO MODIFICAR MPU9250 aquí, lo maneja directamente el componente
-                        // Sólo actualizar otros sensores simulados
-                        const savedMPU = newData.sensors.MPU9250;
+                        // NO preservamos datos del MPU - queremos que se actualicen con datos reales
                         
-                        // Actualizar otros sensores con datos simulados
-                        newData.sensors = generateRandomData(newAltitude).sensors;
+                        // Actualizar otros sensores simulados
+                        const simulatedData = generateRandomData(newAltitude);
                         
-                        // Restaurar el MPU que teníamos
-                        newData.sensors.MPU9250 = savedMPU;
+                        // Actualizamos solo los sensores que no son MPU
+                        newData.sensors.BMP280 = simulatedData.sensors.BMP280;
+                        newData.sensors.NEO6M = simulatedData.sensors.NEO6M;
+                        newData.sensors.CCS811 = simulatedData.sensors.CCS811;
                         
                         return newData;
                     });
@@ -332,25 +362,27 @@ export const SensorsDataProvider = ({ children }) => {
             }, 1000);
             
             return;
-        } else if (mode === true && isArduinoConnected) {
+        } 
+        // MODO REAL (Arduino conectado)
+        else if (mode === true && isArduinoConnected) {
             startWithRealData();
             return;
         }
         
-        // Modo simulación estándar
+        // MODO SIMULACIÓN ESTÁNDAR
         console.log("🎮 Activando modo SIMULACIÓN");
         setActiveMode('simulation');
         setUseRealMPU(false);
         setUseSimulation(true);
         
-        // Intervalo para datos simulados
+        // Generar datos simulados completos
         intervalRef.current = setInterval(() => {
             setCurrentAltitude(prevAltitude => {
                 const newAltitude = prevAltitude + 17;
                 setData(generateRandomData(newAltitude));
                 return newAltitude;
             });
-        }, 1000); // Generar datos cada segundo
+        }, 1000);
     };
 
     // Función para detener y reiniciar los datos

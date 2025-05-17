@@ -13,7 +13,7 @@ import SimulationCanSat from "../components/realtime/SimulationCanSat";
 
 const RealTimePage = () => {
     const { handleStart, handleStop } = useTimer();
-    const { data, startGeneratingData, stopGeneratingData } = useSensorsData();
+    const { data, startGeneratingData, stopGeneratingData, activeMode } = useSensorsData();
     const [isSimulating, setIsSimulating] = useState(false);
 
     if (!data || !data.sensors) {
@@ -22,10 +22,10 @@ const RealTimePage = () => {
 
     const { sensors } = data;
 
-    const handleStartAll = () => {
-        handleStart();
-        startGeneratingData();
-        setIsSimulating(true);
+    const handleStartAll = (mode) => {
+    handleStart();
+    startGeneratingData(mode); // Ahora pasamos el parámetro 'unitTest' correctamente
+    setIsSimulating(true);
     };
 
     const handleStopAll = () => {
@@ -104,7 +104,7 @@ const RealTimePage = () => {
                     {/* Contenedor del simulador */}
                     <div className='w-full lg:w-4/12 flex flex-col justify-start lg:justify-center mt-4 lg:mt-0'>
                         <div className='flex-1 mb-2 flex justify-center h-[700px] sm:h-[800px] lg:h-[calc(100vh-8rem)] xl:h-[calc(100vh-7rem)]'>
-                            <SimulationCanSat />
+                            <SimulationCanSat testMode={activeMode === 'unitTest' ? 'unitTest' : null} />
                         </div>
                         <div className='flex flex-col space-y-2 px-2 lg:px-0'>
                             <Actions onStart={handleStartAll} onStop={handleStopAll} isSimulating={isSimulating} />
