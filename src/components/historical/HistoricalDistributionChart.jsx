@@ -1,15 +1,21 @@
 import { motion } from "framer-motion";
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend } from "recharts";
 
-const categoryData = [
-	{ name: "Éxito", value: 2 },
-	{ name: "Errores", value: 5 },
-	{ name: "Fallidas", value: 3 },	
-];
+const FALLBACK_COLORS = ["#6366F1", "#8B5CF6", "#EC4899", "#10B981", "#F59E0B"];
 
-const COLORS = ["#6366F1", "#8B5CF6", "#EC4899", "#10B981", "#F59E0B"];
-
-const CategoryDistributionChart = () => {
+const CategoryDistributionChart = ({ data }) => {
+	if (!data || data.length === 0) {
+		return (
+			<motion.div
+				className='bg-gray-800 bg-opacity-50 backdrop-blur-md shadow-lg rounded-xl p-6 border border-gray-700 flex items-center justify-center h-80' // Ajustada altura
+				initial={{ opacity: 0, y: 20 }}
+				animate={{ opacity: 1, y: 0 }}
+				transition={{ delay: 0.3 }}
+			>
+				<p className="text-gray-400">No hay datos para mostrar en el gráfico de distribución.</p>
+			</motion.div>
+		);
+	}
 	return (
 		<motion.div
 			className='bg-gray-800 bg-opacity-50 backdrop-blur-md shadow-lg rounded-xl p-6 border border-gray-700'
@@ -18,21 +24,22 @@ const CategoryDistributionChart = () => {
 			transition={{ delay: 0.3 }}
 		>
 			<h2 className='text-lg font-medium mb-4 text-gray-100 text-center'>Resultado pruebas</h2>
-			<div className='h-80'>
+			<div className='h-80'> {/* Ajustada altura */}
 				<ResponsiveContainer width={"100%"} height={"100%"}>
 					<PieChart>
 						<Pie
-							data={categoryData}
+							data={data}
 							cx={"50%"}
 							cy={"50%"}
 							labelLine={false}
-							outerRadius={80}
-							fill='#8884d8'
+							outerRadius={100}
+							innerRadius={50}
+							fill='#8884d8' // Color base, las celdas lo sobreescriben
 							dataKey='value'
 							label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
 						>
-							{categoryData.map((entry, index) => (
-								<Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+							{data.map((entry, index) => ( // Cambiado categoryData a data
+								<Cell key={`cell-${index}`} fill={entry.color || FALLBACK_COLORS[index % FALLBACK_COLORS.length]} />
 							))}
 						</Pie>
 						<Tooltip
@@ -49,4 +56,5 @@ const CategoryDistributionChart = () => {
 		</motion.div>
 	);
 };
+
 export default CategoryDistributionChart;
