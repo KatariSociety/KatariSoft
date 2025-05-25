@@ -74,12 +74,12 @@ const RocketModel = ({ testMode }) => {
           }
           
           // Extraer y parsear valores con manejo seguro de valores nulos/undefined
-          const gyroX = parseFloat(parsedData.gyroscope?.x?.value || 0);
-          const gyroY = parseFloat(parsedData.gyroscope?.y?.value || 0);
-          const gyroZ = parseFloat(parsedData.gyroscope?.z?.value || 0);
-          const accelX = parseFloat(parsedData.accelerometer?.x?.value || 0);
-          const accelY = parseFloat(parsedData.accelerometer?.y?.value || 0);
-          const accelZ = parseFloat(parsedData.accelerometer?.z?.value || 0);
+          const gyroX = parseFloat(parsedData.gyroscope?.x || 0);
+          const gyroY = parseFloat(parsedData.gyroscope?.y || 0);
+          const gyroZ = parseFloat(parsedData.gyroscope?.z || 0);
+          const accelX = parseFloat(parsedData.accelerometer?.x || 0);
+          const accelY = parseFloat(parsedData.accelerometer?.y || 0);
+          const accelZ = parseFloat(parsedData.accelerometer?.z || 0);
           
           // Actualizar estado local con los datos recibidos
           setLocalMPUData({
@@ -138,26 +138,36 @@ const RocketModel = ({ testMode }) => {
   useFrame(() => {
     if (rocketRef.current) {
       if (testMode === 'unitTest') {
-        // MODO PRUEBA UNITARIA: Sin restricciones en los ángulos
-        const thetaX = THREE.MathUtils.degToRad(gyroX);
-        const thetaZ = THREE.MathUtils.degToRad(gyroZ);
+        // MODO PRUEBA UNITARIA: Usar acelerómetro para inclinación real
         
-        // Factor de respuesta más rápido para prueba unitaria
-        const directFactor = 0.5;
+        // Calcular ángulos de inclinación a partir del acelerómetro
+        // Esta fórmula convierte lecturas de acelerómetro a ángulos de inclinación
+        const accelXg = accelX;  // Se asume que viene en unidades g
+        const accelYg = accelY;
+        const accelZg = accelZ;
         
-        rocketRef.current.rotation.x = THREE.MathUtils.lerp(
-          rocketRef.current.rotation.x, thetaX, directFactor
-        );
+        // Calcular ángulos usando arcotangente (atan2)
+        // Para rotación en X (pitch) - alrededor del eje X
+        const pitchRad = Math.atan2(accelYg, Math.sqrt(accelXg * accelXg + accelZg * accelZg));
+        // Para rotación en Z (roll) - alrededor del eje Z
+        const rollRad = Math.atan2(-accelXg, accelZg);
         
-        rocketRef.current.rotation.z = THREE.MathUtils.lerp(
-          rocketRef.current.rotation.z, thetaZ, directFactor
-        );
+        // Aplicar directamente al modelo
+        rocketRef.current.rotation.x = pitchRad;
+        rocketRef.current.rotation.z = rollRad;
         
-        // Calcular ángulo de inclinación
-        const inclinationAngle = Math.sqrt(thetaX ** 2 + thetaZ ** 2) * (180 / Math.PI);
+        // Convertir a grados para mostrar
+        const pitchDeg = pitchRad * (180 / Math.PI);
+        const rollDeg = rollRad * (180 / Math.PI);
+        
+        // Calcular ángulo total de inclinación
+        const inclinationAngle = Math.sqrt(pitchDeg * pitchDeg + rollDeg * rollDeg);
         setAngle(inclinationAngle.toFixed(2));
+        
+        // Mostrar valores por consola para debug
+        console.log(`📐 Ángulos calculados - Pitch: ${pitchDeg.toFixed(2)}°, Roll: ${rollDeg.toFixed(2)}°, Total: ${inclinationAngle.toFixed(2)}°`);
       } else {
-        // MODO SIMULACIÓN: Con restricciones de ángulos
+        // MODO SIMULACIÓN: Con restricciones de ángulos (sin cambios)
         const thetaX = THREE.MathUtils.degToRad(Math.min(Math.max(gyroX, -10), 10));
         const thetaZ = THREE.MathUtils.degToRad(Math.min(Math.max(gyroZ, -10), 10));
         
@@ -202,13 +212,6 @@ const RocketModel = ({ testMode }) => {
           Inclinación: {angle}° <br />
           Altura: {currentAltitude} m
           
-          {/* Mostrar datos adicionales en modo prueba unitaria */}
-          {testMode === 'unitTest' && (
-            <div style={{ marginTop: "5px", fontSize: "10px", borderTop: "1px solid rgba(255,255,255,0.3)", paddingTop: "3px" }}>
-              Accel: X:{accelX.toFixed(2)} Y:{accelY.toFixed(2)} Z:{accelZ.toFixed(2)}<br/>
-              Gyro: X:{gyroX.toFixed(2)} Y:{gyroY.toFixed(2)} Z:{gyroZ.toFixed(2)}
-            </div>
-          )}
         </div>
       </Html>
     </group>

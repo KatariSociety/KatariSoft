@@ -23,9 +23,9 @@ const RealTimePage = () => {
     const { sensors } = data;
 
     const handleStartAll = (mode) => {
-    handleStart();
-    startGeneratingData(mode); // Ahora pasamos el parámetro 'unitTest' correctamente
-    setIsSimulating(true);
+        handleStart();
+        startGeneratingData(mode);
+        setIsSimulating(true);
     };
 
     const handleStopAll = () => {
@@ -40,7 +40,8 @@ const RealTimePage = () => {
 
             <main className='max-w-7xl mx-auto py-2 px-2 sm:py-4 sm:px-4 lg:px-6'>
                 <div className='flex flex-col lg:flex-row gap-4'>
-                    <div className='w-full lg:w-8/12'>
+                    {/* Reducimos el ancho de la sección de KPIs */}
+                    <div className='w-full lg:w-6/12'>
                         {/* COHETE */}
                         <div className='mb-4 lg:mb-6'>
                             <motion.h2 
@@ -52,18 +53,38 @@ const RealTimePage = () => {
                                 Cohete
                             </motion.h2>
                             <motion.div
-                                className='grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-4'
-                                initial={{ y: 20 }}  // Removida la opacidad inicial
-                                animate={{ y: 0 }}   // Solo animamos el movimiento
+                                className='grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3'
+                                initial={{ y: 20 }}
+                                animate={{ y: 0 }}
                                 transition={{ 
-                                    duration: 0.3,   // Reducida la duración
-                                    ease: 'easeOut'  // Añadida curva de ease
+                                    duration: 0.3,
+                                    ease: 'easeOut'
                                 }}
                             >
                                 <StatCard name='Velocidad' icon={Rocket} value={`${sensors.NEO6M.readings.speed.value} ${sensors.NEO6M.readings.speed.unit}`} color='#6366F1' />
                                 <StatCard name='Altura' icon={Zap} value={`${sensors.BMP280.readings.altitude.value} ${sensors.BMP280.readings.altitude.unit}`} color='#8B5CF6' />
                                 <StatCard name='Giroscopio' icon={BarChart2} value={`x: ${sensors.MPU9250.readings.gyroscope.x.value}, y: ${sensors.MPU9250.readings.gyroscope.y.value}, z: ${sensors.MPU9250.readings.gyroscope.z.value}`} color='#EC4899' />
-                                <StatCard name='GPS' icon={MapPin} value={`${sensors.NEO6M.readings.location.latitude}, ${sensors.NEO6M.readings.location.longitude}`} color='#10B981' />
+                                <StatCard 
+                                    name='Aceleración' 
+                                    icon={Zap} 
+                                    value={`x: ${sensors.MPU9250.readings.accelerometer.x.value}, y: ${sensors.MPU9250.readings.accelerometer.y.value}, z: ${sensors.MPU9250.readings.accelerometer.z.value}`} 
+                                    color='#F59E0B' 
+                                />
+                                <StatCard 
+                                    name='Ángulo' 
+                                    icon={BarChart2} 
+                                    value={`${Math.sqrt(
+                                        Math.pow(parseFloat(sensors.MPU9250.readings.gyroscope.x.value), 2) + 
+                                        Math.pow(parseFloat(sensors.MPU9250.readings.gyroscope.z.value), 2)
+                                    ).toFixed(2)}°`} 
+                                    color='#10B981' 
+                                />
+                                <StatCard 
+                                    name='Presión' 
+                                    icon={Gauge} 
+                                    value={`${sensors.BMP280.readings.pressure.value} ${sensors.BMP280.readings.pressure.unit}`} 
+                                    color='#3B82F6' 
+                                />
                             </motion.div>
                         </div>
 
@@ -78,7 +99,7 @@ const RealTimePage = () => {
                                 Satélite
                             </motion.h2>
                             <motion.div
-                                className='grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-4'
+                                className='grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3'
                                 initial={{ y: 20 }}
                                 animate={{ y: 0 }}
                                 transition={{ 
@@ -86,8 +107,6 @@ const RealTimePage = () => {
                                     ease: 'easeOut'
                                 }}
                             >
-                                <StatCard name='Velocidad' icon={Satellite} value={`${sensors.NEO6M.readings.speed.value} ${sensors.NEO6M.readings.speed.unit}`} color='#6366F1' />
-                                <StatCard name='Altura' icon={BarChart2} value={`${sensors.BMP280.readings.altitude.value} ${sensors.BMP280.readings.altitude.unit}`} color='#8B5CF6' />
                                 <StatCard name='GPS' icon={MapPin} value={`${sensors.NEO6M.readings.location.latitude}, ${sensors.NEO6M.readings.location.longitude}`} color='#10B981' />
                                 <StatCard name='Presión' icon={Gauge} value={`${sensors.BMP280.readings.pressure.value} ${sensors.BMP280.readings.pressure.unit}`} color='#6366F1' />
                                 <StatCard name='Temperatura' icon={Thermometer} value={`${sensors.BMP280.readings.temperature.value} ${sensors.BMP280.readings.temperature.unit}`} color='#EC4899' />
@@ -101,16 +120,15 @@ const RealTimePage = () => {
                         </div>
                     </div>
 
-                    {/* Contenedor del simulador */}
-                    <div className='w-full lg:w-4/12 flex flex-col justify-start lg:justify-center mt-4 lg:mt-0'>
-                        <div className='flex-1 mb-2 flex justify-center h-[700px] sm:h-[800px] lg:h-[calc(100vh-8rem)] xl:h-[calc(100vh-7rem)]'>
+                    {/* Aumentamos el ancho del contenedor de la simulación */}
+                    <div className='w-full lg:w-6/12 flex flex-col justify-start lg:justify-center mt-4 lg:mt-0'>
+                        <div className='flex-1 mb-2 flex justify-center h-[700px] sm:h-[800px] lg:h-[calc(100vh-6rem)] xl:h-[calc(100vh-5rem)]'>
                             <SimulationCanSat testMode={activeMode === 'unitTest' ? 'unitTest' : null} />
                         </div>
                         <div className='flex flex-col space-y-2 px-2 lg:px-0'>
                             <Actions onStart={handleStartAll} onStop={handleStopAll} isSimulating={isSimulating} />
                         </div>
                     </div>
-
                 </div>
             </main>
         </div>

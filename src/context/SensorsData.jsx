@@ -3,7 +3,7 @@ import io from 'socket.io-client';
 
 const SensorsDataContext = createContext();
 
-const MAX_GYRO_ANGLE = 10; // Máximo de 10 grados permitido
+const MAX_GYRO_ANGLE = 100; //Máximo de 10 grados permitido
 
 // Datos iniciales en reposo
 const initialData = {
