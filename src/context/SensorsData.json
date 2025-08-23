@@ -100,6 +100,21 @@
           }
         }
       }
+      ,
+      "SCD40": {
+        "sensor_id": "SCD_40_K1",
+        "timestamp": "2024-11-09T12:34:56Z",
+        "readings": {
+          "temperature": {
+            "value": 23.5,
+            "unit": "C"
+          },
+          "CO2": {
+            "value": 415,
+            "unit": "ppm"
+          }
+        }
+      }
     }
   }
   

@@ -10,6 +10,7 @@ import DangerZone from "../components/realtime/DangerZone";
 import { useTimer } from "../context/TimerContext";
 import { useSensorsData } from "../context/SensorsData";
 import SimulationCanSat from "../components/realtime/SimulationCanSat";
+import GPSModal from "../components/realtime/GPSModal";
 
 const RealTimePage = () => {
     const { handleStart, handleStop } = useTimer();
@@ -21,6 +22,7 @@ const RealTimePage = () => {
     }
 
     const { sensors } = data;
+    const [showGPSModal, setShowGPSModal] = React.useState(false);
 
     const handleStartAll = (mode) => {
         handleStart();
@@ -61,17 +63,20 @@ const RealTimePage = () => {
                                     ease: 'easeOut'
                                 }}
                             >
-                                <StatCard name='Velocidad' icon={Rocket} value={`${sensors.NEO6M.readings.speed.value} ${sensors.NEO6M.readings.speed.unit}`} color='#6366F1' />
-                                <StatCard name='Altura' icon={Zap} value={`${sensors.BMP280.readings.altitude.value} ${sensors.BMP280.readings.altitude.unit}`} color='#8B5CF6' />
-                                <StatCard name='Giroscopio' icon={BarChart2} value={`x: ${sensors.MPU9250.readings.gyroscope.x.value}, y: ${sensors.MPU9250.readings.gyroscope.y.value}, z: ${sensors.MPU9250.readings.gyroscope.z.value}`} color='#EC4899' />
+                                <div onClick={() => setShowGPSModal(true)} className='cursor-pointer'>
+                                    <StatCard name='GPS (NEO6M)' icon={MapPin} value={`${sensors.NEO6M.readings.location.latitude}, ${sensors.NEO6M.readings.location.longitude}`} color='#10B981' />
+                                </div>
+                                <StatCard name='Velocidad (NEO6M)' icon={Rocket} value={`${sensors.NEO6M.readings.speed.value} ${sensors.NEO6M.readings.speed.unit}`} color='#6366F1' />
+                                <StatCard name='Altura (BMP280)' icon={Zap} value={`${sensors.BMP280.readings.altitude.value} ${sensors.BMP280.readings.altitude.unit}`} color='#8B5CF6' />
+                                <StatCard name='Giroscopio (MPU9250)' icon={BarChart2} value={`x: ${sensors.MPU9250.readings.gyroscope.x.value}, y: ${sensors.MPU9250.readings.gyroscope.y.value}, z: ${sensors.MPU9250.readings.gyroscope.z.value}`} color='#EC4899' />
                                 <StatCard 
-                                    name='Aceleración' 
+                                    name='Aceleración (MPU9250)' 
                                     icon={Zap} 
                                     value={`x: ${sensors.MPU9250.readings.accelerometer.x.value}, y: ${sensors.MPU9250.readings.accelerometer.y.value}, z: ${sensors.MPU9250.readings.accelerometer.z.value}`} 
                                     color='#F59E0B' 
                                 />
                                 <StatCard 
-                                    name='Ángulo' 
+                                    name='Ángulo (MPU9250)' 
                                     icon={BarChart2} 
                                     value={`${Math.sqrt(
                                         Math.pow(parseFloat(sensors.MPU9250.readings.gyroscope.x.value), 2) + 
@@ -80,7 +85,7 @@ const RealTimePage = () => {
                                     color='#10B981' 
                                 />
                                 <StatCard 
-                                    name='Presión' 
+                                    name='Presión (BMP280)' 
                                     icon={Gauge} 
                                     value={`${sensors.BMP280.readings.pressure.value} ${sensors.BMP280.readings.pressure.unit}`} 
                                     color='#3B82F6' 
@@ -107,12 +112,17 @@ const RealTimePage = () => {
                                     ease: 'easeOut'
                                 }}
                             >
-                                <StatCard name='GPS' icon={MapPin} value={`${sensors.NEO6M.readings.location.latitude}, ${sensors.NEO6M.readings.location.longitude}`} color='#10B981' />
-                                <StatCard name='Presión' icon={Gauge} value={`${sensors.BMP280.readings.pressure.value} ${sensors.BMP280.readings.pressure.unit}`} color='#6366F1' />
-                                <StatCard name='Temperatura' icon={Thermometer} value={`${sensors.BMP280.readings.temperature.value} ${sensors.BMP280.readings.temperature.unit}`} color='#EC4899' />
+                                <div onClick={() => setShowGPSModal(true)} className='cursor-pointer'>
+                                    <StatCard name='GPS (NEO6M)' icon={MapPin} value={`${sensors.NEO6M.readings.location.latitude}, ${sensors.NEO6M.readings.location.longitude}`} color='#10B981' />
+                                </div>
+                                <StatCard name='Velocidad (NEO6M)' icon={Rocket} value={`${sensors.NEO6M?.readings?.speed?.value ?? '-'} ${sensors.NEO6M?.readings?.speed?.unit ?? ''}`} color='#6366F1' />
+                                <StatCard name='Altura (NEO6M)' icon={Zap} value={`${sensors.NEO6M?.readings?.location?.altitude?.value ?? sensors.BMP280.readings.altitude.value} ${sensors.NEO6M?.readings?.location?.altitude?.unit ?? sensors.BMP280.readings.altitude.unit}`} color='#8B5CF6' />
+                                <StatCard name='Presión (BMP280)' icon={Gauge} value={`${sensors.BMP280.readings.pressure.value} ${sensors.BMP280.readings.pressure.unit}`} color='#6366F1' />
+                                <StatCard name='Temperatura (BMP280)' icon={Thermometer} value={`${sensors.BMP280.readings.temperature.value} ${sensors.BMP280.readings.temperature.unit}`} color='#EC4899' />
+                                <StatCard name='Temperatura (SCD40)' icon={Thermometer} value={`${sensors.SCD40?.readings?.temperature?.value ?? '-'} ${sensors.SCD40?.readings?.temperature?.unit ?? ''}`} color='#F97316' />
                                 <StatCard name='Humedad' icon={CloudHail} value='12%' color='#8B5CF6' />
                                 <StatCard name='CO' icon={Zap} value='12' color='#10B981' />
-                                <StatCard name='CO2' icon={Zap} value={`${sensors.CCS811.readings.CO2.value} ${sensors.CCS811.readings.CO2.unit}`} color='#EC4899' />
+                                <StatCard name='CO2 (SCD40)' icon={Zap} value={`${sensors.SCD40?.readings?.CO2?.value ?? '-'} ${sensors.SCD40?.readings?.CO2?.unit ?? ''}`} color='#7C3AED' />
                             </motion.div>
                             <div className='mt-4 lg:mt-6'>
                                 <DangerZone />
@@ -131,6 +141,7 @@ const RealTimePage = () => {
                     </div>
                 </div>
             </main>
+            <GPSModal isVisible={showGPSModal} onClose={() => setShowGPSModal(false)} gps={sensors.NEO6M} />
         </div>
     );
 };
