@@ -1,0 +1,92 @@
+/* Estilos personalizados para el marcador del satélite */
+.custom-satellite-icon {
+  background: transparent !important;
+  border: none !important;
+}
+
+.satellite-marker {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  background: linear-gradient(135deg, #3B82F6, #1D4ED8);
+  border: 2px solid #FFFFFF;
+  border-radius: 50%;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+  animation: pulse 2s infinite;
+}
+
+.satellite-marker svg {
+  color: #FFFFFF;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.3));
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+  }
+  50% {
+    transform: scale(1.1);
+    box-shadow: 0 6px 16px rgba(59, 130, 246, 0.6);
+  }
+  100% {
+    transform: scale(1);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+  }
+}
+
+/* Estilos para el mapa */
+.leaflet-container {
+  background: #1F2937 !important;
+}
+
+.leaflet-popup-content-wrapper {
+  background: rgba(31, 41, 55, 0.95) !important;
+  backdrop-filter: blur(10px) !important;
+  border: 1px solid #4B5563 !important;
+  border-radius: 8px !important;
+  color: #E5E7EB !important;
+}
+
+.leaflet-popup-tip {
+  background: rgba(31, 41, 55, 0.95) !important;
+  border: 1px solid #4B5563 !important;
+}
+
+.leaflet-popup-close-button {
+  color: #9CA3AF !important;
+}
+
+.leaflet-popup-close-button:hover {
+  color: #E5E7EB !important;
+}
+
+/* Estilos para los controles del mapa */
+.leaflet-control-zoom a {
+  background: rgba(31, 41, 55, 0.9) !important;
+  border: 1px solid #4B5563 !important;
+  color: #E5E7EB !important;
+}
+
+.leaflet-control-zoom a:hover {
+  background: rgba(55, 65, 81, 0.9) !important;
+  border-color: #6B7280 !important;
+}
+
+/* Estilos para la leyenda del mapa */
+.leaflet-control-layers {
+  background: rgba(31, 41, 55, 0.9) !important;
+  border: 1px solid #4B5563 !important;
+  border-radius: 4px !important;
+}
+
+.leaflet-control-layers label {
+  color: #E5E7EB !important;
+}
+
+.leaflet-control-layers input[type="radio"],
+.leaflet-control-layers input[type="checkbox"] {
+  accent-color: #3B82F6 !important;
+}
