@@ -12,6 +12,7 @@ const RocketModel = ({ testMode }) => {
   const rocketRef = useRef();
   const [angle, setAngle] = useState(0);
   const socketRef = useRef(null);
+  const [predictedPath, setPredictedPath] = useState([]);
   
   // Estado local para los datos del MPU en modo prueba
   const [localMPUData, setLocalMPUData] = useState({
@@ -128,12 +129,53 @@ const RocketModel = ({ testMode }) => {
   const accelY = testMode === 'unitTest' ? localMPUData.accelY : Number(data?.sensors?.MPU9250?.readings?.accelerometer?.y?.value) || 0;
   const accelZ = testMode === 'unitTest' ? localMPUData.accelZ : Number(data?.sensors?.MPU9250?.readings?.accelerometer?.z?.value) || 0;
 
+  // Función para predecir trayectoria balística
+  const calculatePredictedPath = () => {
+    const timeSteps = 30; // Predicción para 3 segundos (30 frames a 10fps)
+    const timeStep = 0.1; // 100ms por paso
+    
+    const path = [];
+    let currentX = 0;
+    let currentY = 0;
+    let currentZ = 0;
+    let currentVX = accelX * 9.81; // Convertir aceleración a velocidad (m/s)
+    let currentVY = accelY * 9.81;
+    let currentVZ = accelZ * 9.81;
+    
+    for (let i = 0; i < timeSteps; i++) {
+      path.push({
+        x: currentX,
+        y: currentY,
+        z: currentZ,
+        time: i * timeStep
+      });
+      
+      // Actualizar posición usando ecuaciones de movimiento
+      currentX += currentVX * timeStep;
+      currentY += currentVY * timeStep;
+      currentZ += currentVZ * timeStep;
+      
+      // Aplicar gravedad y resistencia del aire
+      currentVY -= 9.81 * timeStep; // Gravedad
+      currentVX *= 0.99; // Resistencia del aire (simplificado)
+      currentVZ *= 0.99;
+    }
+    
+    return path;
+  };
+
   // Registro para debug cuando los valores cambian
   useEffect(() => {
     if (testMode === 'unitTest') {
       console.log(`🛰️ Actualizando visualización con Gyro X: ${gyroX.toFixed(2)}, Z: ${gyroZ.toFixed(2)}`);
     }
   }, [gyroX, gyroZ, testMode]);
+
+  // Actualizar trayectoria predicha cuando cambien los datos de aceleración
+  useEffect(() => {
+    const newPath = calculatePredictedPath();
+    setPredictedPath(newPath);
+  }, [accelX, accelY, accelZ]);
 
   useFrame(() => {
     if (rocketRef.current) {
@@ -193,6 +235,32 @@ const RocketModel = ({ testMode }) => {
     <group>
       <primitive ref={rocketRef} object={scene} scale={1.5} />
       
+      {/* Trayectoria predicha */}
+      {predictedPath.length > 0 && (
+        <group>
+          {/* Línea punteada para la trayectoria */}
+          <line>
+            <bufferGeometry>
+              <bufferAttribute
+                attach="attributes-position"
+                count={predictedPath.length}
+                array={new Float32Array(predictedPath.flatMap(point => [point.x, point.y, point.z]))}
+                itemSize={3}
+              />
+            </bufferGeometry>
+            <lineBasicMaterial color="#00ff00" linewidth={2} transparent opacity={0.6} />
+          </line>
+          
+          {/* Puntos semitransparentes en la trayectoria */}
+          {predictedPath.map((point, index) => (
+            <mesh key={index} position={[point.x, point.y, point.z]}>
+              <sphereGeometry args={[0.05, 8, 6]} />
+              <meshBasicMaterial color="#00ff00" transparent opacity={0.3} />
+            </mesh>
+          ))}
+        </group>
+      )}
+      
       {/* Mostrar el ángulo y la altura en pantalla */}
       <Html position={[0, 3, 0]} center>
         <div style={{ 
@@ -210,7 +278,13 @@ const RocketModel = ({ testMode }) => {
             </div>
           )}
           Inclinación: {angle}° <br />
-          Altura: {currentAltitude} m
+          Altura: {currentAltitude} m <br />
+          {predictedPath.length > 0 && (
+            <>
+              Predicción: {predictedPath.length * 0.1}s <br />
+              Velocidad: {Math.sqrt(accelX * accelX + accelY * accelY + accelZ * accelZ).toFixed(2)} m/s²
+            </>
+          )}
           
         </div>
       </Html>
