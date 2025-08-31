@@ -3,10 +3,7 @@ import { motion } from "framer-motion";
 import { Rocket, Satellite, BarChart2, Thermometer, Gauge, Activity, Navigation } from "lucide-react";
 
 import ImuChart from "../components/dashboard/ImuChart";
-import AlturaCansat from "../components/dashboard/AlturaCansat";
 import AlturaRocket from "../components/dashboard/AlturaRocket";
-import TemperaturaCansat from "../components/dashboard/TemperaturaCansat";
-import PresionCansatChart from "../components/dashboard/PresionCansatChart";
 import VelocityChart from "../components/dashboard/VelocityChart";
 import PressureAltitudeChart from "../components/dashboard/PressureAltitudeChart";
 import AtmosphericProfileChart from "../components/dashboard/AtmosphericProfileChart";
@@ -130,57 +127,35 @@ const DashboardPage = () => {
 						</motion.div>
 					</div>
 
-					{/* Segunda fila: Sensores del CanSat */}
-					<div className='grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8'>
+					{/* Layout Asimétrico: Análisis y Consumo Energético */}
+					<div className='grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8'>
+						{/* Columna Izquierda: El componente más alto */}
 						<motion.div
 							initial={{ opacity: 0, y: 20 }}
 							animate={{ opacity: 1, y: 0 }}
 							transition={{ duration: 0.4, delay: 0.9 }}
 						>
-							<AlturaCansat />
-						</motion.div>
-						<motion.div
-							initial={{ opacity: 0, y: 20 }}
-							animate={{ opacity: 1, y: 0 }}
-							transition={{ duration: 0.4, delay: 1.0 }}
-						>
-							<TemperaturaCansat />
-						</motion.div>
-						<motion.div
-							initial={{ opacity: 0, y: 20 }}
-							animate={{ opacity: 1, y: 0 }}
-							transition={{ duration: 0.4, delay: 1.1 }}
-						>
-							<PresionCansatChart />
-						</motion.div>
-					</div>
-
-					{/* Tercera fila: Perfil Atmosférico y Estado de Sensores */}
-					<div className='grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8'>
-						<motion.div
-							initial={{ opacity: 0, y: 20 }}
-							animate={{ opacity: 1, y: 0 }}
-							transition={{ duration: 0.4, delay: 1.2 }}
-						>
-							<AtmosphericProfileChart />
-						</motion.div>
-						<motion.div
-							initial={{ opacity: 0, y: 20 }}
-							animate={{ opacity: 1, y: 0 }}
-							transition={{ duration: 0.4, delay: 1.3 }}
-						>
 							<SensorHealthChart gpsCalibrationStatus={true} />
 						</motion.div>
-					</div>
 
-					{/* Cuarta fila: Consumo Energético (ancho completo) */}
-					<motion.div
-						initial={{ opacity: 0, y: 20 }}
-						animate={{ opacity: 1, y: 0 }}
-						transition={{ duration: 0.4, delay: 1.4 }}
-					>
-						<EnergyConsumptionChart />
-					</motion.div>
+						{/* Columna Derecha: Componentes apilados */}
+						<div className='flex flex-col gap-8'>
+							<motion.div
+								initial={{ opacity: 0, y: 20 }}
+								animate={{ opacity: 1, y: 0 }}
+								transition={{ duration: 0.4, delay: 1.0 }}
+							>
+								<AtmosphericProfileChart />
+							</motion.div>
+							<motion.div
+								initial={{ opacity: 0, y: 20 }}
+								animate={{ opacity: 1, y: 0 }}
+								transition={{ duration: 0.4, delay: 1.1 }}
+							>
+								<EnergyConsumptionChart />
+							</motion.div>
+						</div>
+					</div>
 				</motion.div>
 
 				{/* Resumen de Métricas */}
