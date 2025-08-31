@@ -5,12 +5,14 @@ import { motion } from "framer-motion";
 
 import Header from "../components/common/Header";
 import StatCard from "../components/common/StatCard";
+import VerificationCard from "../components/common/VerificationCard";
 import Actions from "../components/realtime/Actions";
 import DangerZone from "../components/realtime/DangerZone";
 import { useTimer } from "../context/TimerContext";
 import { useSensorsData } from "../context/SensorsData";
 import SimulationCanSat from "../components/realtime/SimulationCanSat";
 import GPSModal from "../components/realtime/GPSModal";
+import SystemStatusIndicator from "../components/realtime/SystemStatusIndicator";
 
 const RealTimePage = () => {
     const { handleStart, handleStop } = useTimer();
@@ -39,6 +41,8 @@ const RealTimePage = () => {
     return (
         <div className='flex-1 overflow-auto relative z-10'>
             <Header title='Datos en tiempo real' />
+
+            <SystemStatusIndicator calibrationStatus={sensors?.NEO6M?.readings?.location?.satellites >= 4} />
 
             <main className='max-w-7xl mx-auto py-2 px-2 sm:py-4 sm:px-4 lg:px-6'>
                 <div className='flex flex-col lg:flex-row gap-6'>
@@ -84,11 +88,20 @@ const RealTimePage = () => {
                                         value={`${sensors.NEO6M.readings.speed.value} ${sensors.NEO6M.readings.speed.unit}`} 
                                         color='#6366F1' 
                                     />
-                                    <StatCard 
-                                        name='Altura (BMP280)' 
-                                        icon={Zap} 
-                                        value={`${sensors.BMP280.readings.altitude.value} ${sensors.BMP280.readings.altitude.unit}`} 
-                                        color='#8B5CF6' 
+                                    <VerificationCard
+                                        title="Verificación de Altitud"
+                                        primaryData={{
+                                            name: 'GPS (NEO6M)',
+                                            value: parseFloat(sensors.NEO6M?.readings?.location?.altitude?.value) || 0,
+                                            unit: sensors.NEO6M?.readings?.location?.altitude?.unit || 'm'
+                                        }}
+                                        secondaryData={{
+                                            name: 'Barométrico (BMP280)',
+                                            value: parseFloat(sensors.BMP280.readings.altitude.value) || 0,
+                                            unit: sensors.BMP280.readings.altitude.unit
+                                        }}
+                                        threshold={5}
+                                        icon={Zap}
                                     />
                                     <StatCard 
                                         name='Presión (BMP280)' 
@@ -162,11 +175,20 @@ const RealTimePage = () => {
                                     Condiciones Ambientales
                                 </h3>
                                 <div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
-                                    <StatCard 
-                                        name='Temperatura (BMP280)' 
-                                        icon={Thermometer} 
-                                        value={`${sensors.BMP280.readings.temperature.value} ${sensors.BMP280.readings.temperature.unit}`} 
-                                        color='#EC4899' 
+                                    <VerificationCard
+                                        title="Verificación de Temperatura"
+                                        primaryData={{
+                                            name: 'Barométrico (BMP280)',
+                                            value: parseFloat(sensors.BMP280.readings.temperature.value) || 0,
+                                            unit: sensors.BMP280.readings.temperature.unit
+                                        }}
+                                        secondaryData={{
+                                            name: 'Ambiental (SCD40)',
+                                            value: parseFloat(sensors.SCD40?.readings?.temperature?.value) || 0,
+                                            unit: sensors.SCD40?.readings?.temperature?.unit || '°C'
+                                        }}
+                                        threshold={2}
+                                        icon={Thermometer}
                                     />
                                     <StatCard 
                                         name='Temperatura (SCD40)' 
@@ -175,9 +197,9 @@ const RealTimePage = () => {
                                         color='#F97316' 
                                     />
                                     <StatCard 
-                                        name='Humedad' 
+                                        name='Humedad (SCD40)' 
                                         icon={CloudHail} 
-                                        value='12%' 
+                                        value={`${sensors.SCD40?.readings?.humidity?.value ?? '-'} ${sensors.SCD40?.readings?.humidity?.unit ?? ''}`} 
                                         color='#8B5CF6' 
                                     />
                                     <StatCard 
@@ -201,12 +223,7 @@ const RealTimePage = () => {
                                     Monitoreo y Control
                                 </h3>
                                 <div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
-                                    <StatCard 
-                                        name='CO' 
-                                        icon={Zap} 
-                                        value='12' 
-                                        color='#10B981' 
-                                    />
+
                                     <StatCard 
                                         name='Altura (NEO6M)' 
                                         icon={Zap} 
