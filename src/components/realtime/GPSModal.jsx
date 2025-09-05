@@ -41,7 +41,7 @@ const GPSModal = ({ isVisible, onClose, gps }) => {
                     exit={{ opacity: 0 }}
                 >
                     <motion.div
-                        className="bg-gray-800 p-4 rounded-lg shadow-xl w-[90%] sm:w-3/4 lg:w-2/3 xl:w-1/2 border border-gray-700 mx-4"
+                        className="bg-gray-800 p-4 rounded-lg shadow-xl w-[95%] sm:w-11/12 lg:w-10/12 xl:w-3/4 2xl:w-2/3 max-h-[90vh] overflow-auto border border-gray-700 mx-4"
                         initial={{ scale: 0.95, y: 20 }}
                         animate={{ scale: 1, y: 0 }}
                         exit={{ scale: 0.95, y: 20 }}
@@ -56,7 +56,7 @@ const GPSModal = ({ isVisible, onClose, gps }) => {
                         )}
 
                         {hasCoords && (
-                            <div className="w-full h-64 mb-4">
+                            <div className="w-full mb-4 h-[60vh]">
                                 <MapContainer center={[lat, lon]} zoom={13} style={{ height: '100%', width: '100%' }} scrollWheelZoom={false}>
                                     <TileLayer
                                         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'

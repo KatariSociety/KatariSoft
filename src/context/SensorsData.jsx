@@ -20,9 +20,9 @@ const initialData = {
             sensor_id: "BMP_280_K1",
             timestamp: new Date().toISOString(),
             readings: {
-                temperature: { value: 29, unit: "C" },
-                pressure: { value: 1013.25, unit: "hPa" },
-                altitude: { value: 0, unit: "m" }
+                temperature: { value: 26.5, unit: "C" },
+                pressure: { value: 829.0, unit: "hPa" },
+                altitude: { value: 1658.0, unit: "m" }
             }
         },
     NEO6M: {
@@ -39,14 +39,14 @@ const initialData = {
             timestamp: new Date().toISOString(),
             readings: {
                 accelerometer: {
-                    x: { value: 0, unit: "g" },
-                    y: { value: 0, unit: "g" },
-                    z: { value: 0, unit: "g" }
+                    x: { value: -0.015, unit: "g" },
+                    y: { value: -0.057, unit: "g" },
+                    z: { value: -0.978, unit: "g" }
                 },
                 gyroscope: {
-                    x: { value: 0, unit: "dps" },
-                    y: { value: 0, unit: "dps" },
-                    z: { value: 0, unit: "dps" }
+                    x: { value: 0.0, unit: "dps" },
+                    y: { value: -1.77, unit: "dps" },
+                    z: { value: -0.18, unit: "dps" }
                 }
             }
         },
@@ -63,8 +63,9 @@ const initialData = {
             sensor_id: "SCD_40_K1",
             timestamp: new Date().toISOString(),
             readings: {
-                temperature: { value: 24, unit: "C" },
-                CO2: { value: 400, unit: "ppm" }
+                temperature: { value: 24.0, unit: "C" },
+                CO2: { value: 2663, unit: "ppm" },
+                humidity: { value: 75.6, unit: "%" }
             }
         }
     }
@@ -119,9 +120,9 @@ const generateRandomData = (currentAltitude) => {
                     sensor_id: "BMP_280_K1",
                     timestamp: new Date().toISOString(),
                     readings: {
-                        temperature: { value: 29, unit: "C" },
-                        pressure: { value: (Math.random() * 50 + 950).toFixed(2), unit: "hPa" },
-                        altitude: { value: currentAltitude.toFixed(2), unit: "m" }
+                        temperature: { value: (26.5 + Math.random() * 1).toFixed(2), unit: "C" },
+                        pressure: { value: (829 + Math.random() * 2).toFixed(2), unit: "hPa" },
+                        altitude: { value: (1658 + Math.random() * 5).toFixed(1), unit: "m" }
                     }
                 },
                 NEO6M: {
@@ -161,8 +162,9 @@ const generateRandomData = (currentAltitude) => {
                     sensor_id: "SCD_40_K1",
                     timestamp: new Date().toISOString(),
                     readings: {
-                        temperature: { value: (22 + Math.random() * 8).toFixed(2), unit: "C" },
-                        CO2: { value: (350 + Math.random() * 800).toFixed(2), unit: "ppm" }
+                        temperature: { value: (23.5 + Math.random() * 2).toFixed(2), unit: "C" },
+                        CO2: { value: (2600 + Math.random() * 100).toFixed(0), unit: "ppm" },
+                        humidity: { value: (75 + Math.random() * 5).toFixed(1), unit: "%" }
                     }
                 }
             }
@@ -205,14 +207,14 @@ const generateRandomData = (currentAltitude) => {
                 timestamp: new Date().toISOString(),
                 readings: {
                     accelerometer: {
-                        x: { value: ((Math.random() * 0.4 - 0.2) - 0.19).toFixed(2), unit: "g" },
-                        y: { value: ((Math.random() * 0.02 - 0.01) - 0.01).toFixed(2), unit: "g" },
-                        z: { value: ((Math.random() * 0.1) + 1.0).toFixed(2), unit: "g" }
+                        x: { value: (-0.015 + Math.random() * 0.01).toFixed(3), unit: "g" },
+                        y: { value: (-0.057 + Math.random() * 0.01).toFixed(3), unit: "g" },
+                        z: { value: (-0.978 + Math.random() * 0.02).toFixed(3), unit: "g" }
                     },
                     gyroscope: {
-                        x: { value: randomGyroX, unit: "dps" },
-                        y: { value: randomGyroY, unit: "dps" },
-                        z: { value: randomGyroZ, unit: "dps" }
+                        x: { value: (Math.random() * 0.5 - 0.25).toFixed(2), unit: "dps" },
+                        y: { value: (-1.77 + Math.random() * 0.5).toFixed(2), unit: "dps" },
+                        z: { value: (-0.18 + Math.random() * 0.2).toFixed(2), unit: "dps" }
                     }
                 }
             },
@@ -230,7 +232,8 @@ const generateRandomData = (currentAltitude) => {
                 timestamp: new Date().toISOString(),
                 readings: {
                     temperature: { value: (22 + Math.random() * 8).toFixed(2), unit: "C" },
-                    CO2: { value: (350 + Math.random() * 800).toFixed(2), unit: "ppm" }
+                    CO2: { value: (350 + Math.random() * 800).toFixed(2), unit: "ppm" },
+                    humidity: { value: (40 + Math.random() * 40).toFixed(1), unit: "%" }
                 }
             }
         }
@@ -277,6 +280,17 @@ export const SensorsDataProvider = ({ children }) => {
                 }
                 return prev;
             });
+        });
+        
+        // Escuchar confirmación de prueba unitaria lista
+        socketRef.current.on('unit_test_ready', (response) => {
+            console.log('🧪 Respuesta de prueba unitaria:', response);
+            
+            if (response.ready) {
+                console.log('✅ Servidor confirmó: listo para prueba unitaria');
+            } else {
+                console.error('❌ Error en prueba unitaria:', response.error);
+            }
         });
         
         // Escuchar datos MPU - Modificado para aceptar datos en modo unitTest
@@ -353,6 +367,129 @@ export const SensorsDataProvider = ({ children }) => {
             return newData;
             });
         }
+        });
+        
+        // Escuchar datos completos del Arduino (JSON format como en tu ejemplo)
+        socketRef.current.on('arduino_data', (arduinoData) => {
+            console.log('📡 Datos completos del Arduino recibidos:', typeof arduinoData, arduinoData);
+            console.log("🔍 Estado actual: activeMode =", activeMode, "| useRealMPU =", useRealMPU);
+            
+            // Parsear los datos si vienen como string
+            let parsedData = arduinoData;
+            if (typeof arduinoData === 'string') {
+                try {
+                    parsedData = JSON.parse(arduinoData);
+                    console.log("✅ Datos JSON del Arduino parseados correctamente");
+                } catch (parseError) {
+                    console.error("❌ Error parseando datos JSON del Arduino:", parseError);
+                    return;
+                }
+            }
+            
+            // Solo procesar si estamos en modo unitTest
+            if (activeMode === 'unitTest') {
+                console.log("%c 🧪 MODO PRUEBA UNITARIA - PROCESANDO DATOS REALES DEL ARDUINO", 
+                    "background-color: #10b981; color: white; padding: 8px; border-radius: 4px; font-weight: bold;"
+                );
+                
+                console.log("📊 Datos recibidos del Arduino:");
+                console.log(parsedData);
+                
+                // Mostrar datos GPS específicamente si están presentes
+                if (parsedData.gps_lat !== undefined) {
+                    console.log("🌍 Datos GPS detectados:", {
+                        lat: parsedData.gps_lat,
+                        lng: parsedData.gps_lng,
+                        alt: parsedData.gps_alt,
+                        sats: parsedData.gps_sats
+                    });
+                }
+                
+                setData(prevData => {
+                    const newData = JSON.parse(JSON.stringify(prevData));
+                    newData.timestamp = new Date().toISOString();
+                    
+                    // Actualizar TODOS los sensores con datos reales del Arduino
+                    if (parsedData.co2 !== undefined) {
+                        newData.sensors.SCD40 = {
+                            sensor_id: "SCD_40_K1",
+                            timestamp: new Date().toISOString(),
+                            readings: {
+                                CO2: { value: parseFloat(parsedData.co2) || 0, unit: "ppm" },
+                                temperature: { value: parseFloat(parsedData.temp_scd) || 0, unit: "C" },
+                                humidity: { value: parseFloat(parsedData.humidity) || 0, unit: "%" }
+                            }
+                        };
+                        console.log("✅ Sensor SCD40 actualizado con datos reales");
+                    }
+                    
+                    if (parsedData.pressure !== undefined) {
+                        newData.sensors.BMP280 = {
+                            sensor_id: "BMP_280_K1",
+                            timestamp: new Date().toISOString(),
+                            readings: {
+                                temperature: { value: parseFloat(parsedData.temp_bmp) || 0, unit: "C" },
+                                pressure: { value: parseFloat(parsedData.pressure) || 0, unit: "hPa" },
+                                altitude: { value: parseFloat(parsedData.altitude_bmp) || 0, unit: "m" }
+                            }
+                        };
+                        console.log("✅ Sensor BMP280 actualizado con datos reales");
+                    }
+                    
+                    if (parsedData.accel_x !== undefined) {
+                        newData.sensors.MPU9250 = {
+                            sensor_id: "MPU_9250_K1",
+                            timestamp: new Date().toISOString(),
+                            readings: {
+                                accelerometer: {
+                                    x: { value: parseFloat(parsedData.accel_x) || 0, unit: "g" },
+                                    y: { value: parseFloat(parsedData.accel_y) || 0, unit: "g" },
+                                    z: { value: parseFloat(parsedData.accel_z) || 0, unit: "g" }
+                                },
+                                gyroscope: {
+                                    x: { value: parseFloat(parsedData.gyro_x) || 0, unit: "dps" },
+                                    y: { value: parseFloat(parsedData.gyro_y) || 0, unit: "dps" },
+                                    z: { value: parseFloat(parsedData.gyro_z) || 0, unit: "dps" }
+                                }
+                            }
+                        };
+                        console.log("✅ Sensor MPU9250 actualizado con datos reales");
+                    }
+                    
+                    if (parsedData.gps_lat !== undefined) {
+                        newData.sensors.NEO6M = {
+                            sensor_id: "NEO_6M_K1",
+                            timestamp: new Date().toISOString(),
+                            readings: {
+                                location: { 
+                                    latitude: parseFloat(parsedData.gps_lat) || 0, 
+                                    longitude: parseFloat(parsedData.gps_lng) || 0,
+                                    altitude: { value: parseFloat(parsedData.gps_alt) || 0, unit: 'm' }
+                                },
+                                speed: { value: 0, unit: "km/h" },
+                                satellites: parseInt(parsedData.gps_sats) || 0
+                            }
+                        };
+                        console.log("✅ Sensor GPS actualizado con datos reales");
+                    }
+                    
+                    return newData;
+                });
+            } else {
+                console.log("🔄 Datos del Arduino recibidos pero no en modo unitTest, ignorando");
+            }
+        });
+        
+        // Escuchar datos del sensor (evento legacy para compatibilidad)
+        socketRef.current.on('sensor_data', (sensorData) => {
+            console.log('📊 Datos del sensor recibidos (sensor_data):', typeof sensorData);
+            
+            // Reenviar al manejador de arduino_data para procesamiento consistente
+            if (activeMode === 'unitTest') {
+                console.log('🔄 Reenviando sensor_data a arduino_data handler');
+                // Trigger the arduino_data handler with the same data
+                socketRef.current.emit('arduino_data', sensorData);
+            }
         });
         
         // Manejar desconexiones
@@ -471,48 +608,23 @@ export const SensorsDataProvider = ({ children }) => {
         
         // MODO PRUEBA UNITARIA
         if (mode === 'unitTest') {
-            console.log("%c 🧪 INICIANDO MODO PRUEBA UNITARIA CON MPU REAL", "background-color: #10b981; color: white; font-size: 14px; padding: 5px; border-radius: 4px;");
+            console.log("%c 🧪 INICIANDO MODO PRUEBA UNITARIA - DATOS REALES DEL ARDUINO", 
+                "background-color: #10b981; color: white; font-size: 16px; padding: 8px 16px; border-radius: 4px; font-weight: bold;"
+            );
+            
             setActiveMode('unitTest');
             setUseSimulation(false);
-            setUseRealMPU(true); // Activar uso de datos reales del MPU
-
-            // Inicializar posición simulada del GPS si no está inicializada
-            if (lastLat === null || lastLon === null) {
-                lastLat = GPS_BASE_LAT;
-                lastLon = GPS_BASE_LON;
+            setUseRealMPU(false); // No usar el manejador específico del MPU, usar el manejador completo
+            
+            // Solicitar explícitamente al servidor que inicie la prueba unitaria
+            if (socketRef.current && socketRef.current.connected) {
+                console.log("📡 Solicitando al servidor iniciar prueba unitaria...");
+                socketRef.current.emit('start_unit_test');
+                socketRef.current.emit('connect_arduino', { forceConnection: true, unitTest: true });
             }
             
-            // Solo actualizamos datos de otros sensores (altura, presión, etc.)
-            intervalRef.current = setInterval(() => {
-                setCurrentAltitude(prevAltitude => {
-                    const newAltitude = prevAltitude + 17;
-                    
-                    setData(prevData => {
-                        const newData = JSON.parse(JSON.stringify(prevData));
-                        newData.timestamp = new Date().toISOString();
-                        
-                        // NO preservamos datos del MPU - queremos que se actualicen con datos reales
-                        
-                        // Actualizar otros sensores simulados
-                        const simulatedData = generateRandomData(newAltitude);
-                        
-                        // Actualizamos solo los sensores que no son MPU
-                        newData.sensors.BMP280 = simulatedData.sensors.BMP280;
-                        newData.sensors.NEO6M = simulatedData.sensors.NEO6M;
-                        newData.sensors.CCS811 = simulatedData.sensors.CCS811;
-                        // Añadir SCD40 desde datos simulados
-                        newData.sensors.SCD40 = simulatedData.sensors?.SCD40 || {
-                            sensor_id: "SCD_40_K1",
-                            timestamp: new Date().toISOString(),
-                            readings: { temperature: { value: (22 + Math.random() * 8).toFixed(2), unit: "C" }, CO2: { value: (350 + Math.random() * 800).toFixed(2), unit: "ppm" } }
-                        };
-                        
-                        return newData;
-                    });
-                    
-                    return newAltitude;
-                });
-            }, 1000);
+            console.log("⏳ Modo prueba unitaria activado - esperando datos reales del Arduino...");
+            console.log("🔍 Los datos aparecerán automáticamente cuando el Arduino envíe información");
             
             return;
         } 

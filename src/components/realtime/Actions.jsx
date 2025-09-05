@@ -21,8 +21,16 @@ const Actions = ({ onStart, onStop, isSimulating }) => {
     };
     
     const handleStartUnitTest = () => {
-        onStart('unitTest'); // Modo especial: solo MPU real, resto simulado
+        console.log("🧪 Iniciando prueba unitaria desde Actions.jsx");
+        
+        // Llamar a la función onStart con modo 'unitTest'
+        onStart('unitTest');
+        
+        // Cerrar el modal
         setIsModalOpen(false);
+        
+        // Mensaje informativo para el usuario
+        console.log("✅ Prueba unitaria iniciada - esperando datos reales del Arduino");
     };
 
     return (
