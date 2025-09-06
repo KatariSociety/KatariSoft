@@ -8,20 +8,24 @@ import sensoresService from "../../services/sensoresService";
  * Tabla de historial de lecturas
  * @returns Tabla de historial de lecturas
  */
-const HistoricalTable = ({ initialData, isLoading, dataError, onFilterSubmit }) => {
+const HistoricalTable = ({ initialData, isLoading, dataError, onFilterSubmit, pagination, sortOrder, onSortChange }) => {
 	const [showAlert, setShowAlert] = useState(false);
 	const [alertMessage, setAlertMessage] = useState("Acción no disponible."); // Para mensajes de alerta dinámicos
 	const [searchTerm, setSearchTerm] = useState("");
 	const [filteredHistorical, setFilteredHistorical] = useState([]);
-	const [sortOrder, setSortOrder] = useState("asc");
 	const [filterIcon, setFilterIcon] = useState("");
 	const [sensorNames, setSensorNames] = useState({});
 	const [currentPage, setCurrentPage] = useState(1);
-	const [itemsPerPage, setItemsPerPage] = useState(10);
-	const indexOfLastItem = currentPage * itemsPerPage;
-	const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-	const currentItems = filteredHistorical.slice(indexOfFirstItem, indexOfLastItem);
-	const totalPages = Math.ceil(filteredHistorical.length / itemsPerPage);
+	const [itemsPerPage, setItemsPerPage] = useState(50);
+	
+	// Usar paginación del servidor si está disponible, sino usar paginación local
+	const serverPagination = pagination && pagination.totalPages > 0;
+	const currentItems = serverPagination ? initialData : filteredHistorical.slice(
+		(currentPage - 1) * itemsPerPage, 
+		currentPage * itemsPerPage
+	);
+	const totalPages = serverPagination ? pagination.totalPages : Math.ceil(filteredHistorical.length / itemsPerPage);
+	const totalRecords = serverPagination ? pagination.totalRecords : filteredHistorical.length;
 	const [sensorIdFilter, setSensorIdFilter] = useState("");
 	const [eventoIdFilter, setEventoIdFilter] = useState("");
 	const [detailItem, setDetailItem] = useState(null);
@@ -91,15 +95,27 @@ const HistoricalTable = ({ initialData, isLoading, dataError, onFilterSubmit }) 
 
 	/**
 	 * Actualiza filteredHistorical cuando initialData, searchTerm, filterIcon, o sortOrder cambien
+	 * Solo aplica filtros locales si no estamos usando paginación del servidor
 	 */
+	// Sincronizar página actual con la paginación del servidor
 	useEffect(() => {
-		if (initialData) {
+		if (serverPagination && pagination) {
+			setCurrentPage(pagination.currentPage);
+			setItemsPerPage(pagination.limit);
+		}
+	}, [serverPagination, pagination]);
+
+	useEffect(() => {
+		if (initialData && !serverPagination) {
+			filterAndSortData(searchTerm, filterIcon, sortOrder, initialData);
+		} else if (initialData && serverPagination) {
+			// Si usamos paginación del servidor, solo aplicar filtros locales de búsqueda y ordenamiento
 			filterAndSortData(searchTerm, filterIcon, sortOrder, initialData);
 		} else {
 			setFilteredHistorical([]); // Si no hay initialData, limpiar filtrados
 		}
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [initialData, searchTerm, filterIcon, sortOrder]); // Re-ejecutar cuando cambien estos
+	}, [initialData, searchTerm, filterIcon, serverPagination]); // Re-ejecutar cuando cambien estos
 
 	/**
 	 * Maneja la búsqueda de lecturas
@@ -116,8 +132,9 @@ const HistoricalTable = ({ initialData, isLoading, dataError, onFilterSubmit }) 
 	 */
 	const handleSort = () => {
 		const newSortOrder = sortOrder === "asc" ? "desc" : "asc";
-		setSortOrder(newSortOrder);
-		// El useEffect se encargará de re-ordenar
+		onSortChange(newSortOrder);
+		// Recargar datos con el nuevo ordenamiento
+		onFilterSubmit({ sensorId: sensorIdFilter, eventoId: eventoIdFilter }, currentPage, itemsPerPage, newSortOrder);
 	};
 
 	const handleFilterIcon = (icon) => {
@@ -127,12 +144,21 @@ const HistoricalTable = ({ initialData, isLoading, dataError, onFilterSubmit }) 
 	};
 
 	const handleItemsPerPageChange = (e) => {
-		setItemsPerPage(Number(e.target.value));
+		const newItemsPerPage = Number(e.target.value);
+		setItemsPerPage(newItemsPerPage);
 		setCurrentPage(1); // Resetear a primera página
+		if (serverPagination) {
+			// Si usamos paginación del servidor, recargar datos con el nuevo límite
+			onFilterSubmit({ sensorId: sensorIdFilter, eventoId: eventoIdFilter }, 1, newItemsPerPage, sortOrder);
+		}
 	};
 
 	const handlePageChange = (pageNumber) => {
 		setCurrentPage(pageNumber);
+		if (serverPagination) {
+			// Si usamos paginación del servidor, recargar datos con la nueva página
+			onFilterSubmit({ sensorId: sensorIdFilter, eventoId: eventoIdFilter }, pageNumber, itemsPerPage, sortOrder);
+		}
 	};
 
 	const determineIcon = (item) => {
@@ -230,13 +256,15 @@ const HistoricalTable = ({ initialData, isLoading, dataError, onFilterSubmit }) 
 	};
 
 	const handleApplyServerFilters = () => {
-		onFilterSubmit({ sensorId: sensorIdFilter, eventoId: eventoIdFilter });
+		setCurrentPage(1); // Resetear a primera página
+		onFilterSubmit({ sensorId: sensorIdFilter, eventoId: eventoIdFilter }, 1, itemsPerPage, sortOrder);
 	};
 
     const handleClearServerFilters = () => {
         setSensorIdFilter("");
         setEventoIdFilter("");
-        onFilterSubmit({});
+        setCurrentPage(1); // Resetear a primera página
+        onFilterSubmit({}, 1, itemsPerPage, sortOrder);
     }
 
 	return (
@@ -481,15 +509,21 @@ const HistoricalTable = ({ initialData, isLoading, dataError, onFilterSubmit }) 
 						onChange={handleItemsPerPageChange}
 						className='bg-gray-700 text-white rounded-lg p-2 ml-2'
 					>
-						<option value={5}>5</option>
 						<option value={10}>10</option>
-						<option value={15}>15</option>
+						<option value={25}>25</option>
 						<option value={50}>50</option>
+						<option value={100}>100</option>
+						<option value={500}>500</option>
 					</select>
 				</div>
 				<span className="text-gray-400 text-sm">
-					Mostrando {currentItems.length > 0 ? indexOfFirstItem + 1 : 0}-
-					{Math.min(indexOfLastItem, filteredHistorical.length)} de {filteredHistorical.length} registros
+					{serverPagination ? (
+						`Mostrando ${currentItems.length > 0 ? (pagination.currentPage - 1) * pagination.limit + 1 : 0}-
+						${Math.min(pagination.currentPage * pagination.limit, pagination.totalRecords)} de ${pagination.totalRecords} registros`
+					) : (
+						`Mostrando ${currentItems.length > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0}-
+						${Math.min(currentPage * itemsPerPage, filteredHistorical.length)} de ${filteredHistorical.length} registros`
+					)}
 				</span>
 				<div className='flex gap-x-1'>
 					<button
@@ -501,8 +535,8 @@ const HistoricalTable = ({ initialData, isLoading, dataError, onFilterSubmit }) 
 					</button>
 					<button
 						onClick={() => handlePageChange(currentPage - 1)}
-						disabled={currentPage === 1}
-						className={`px-3 py-1 rounded text-sm ${currentPage === 1 ? 'bg-gray-600 text-gray-400 cursor-not-allowed' : 'bg-gray-700 text-gray-300 hover:bg-gray-600'}`}
+						disabled={serverPagination ? !pagination.hasPrevPage : currentPage === 1}
+						className={`px-3 py-1 rounded text-sm ${(serverPagination ? !pagination.hasPrevPage : currentPage === 1) ? 'bg-gray-600 text-gray-400 cursor-not-allowed' : 'bg-gray-700 text-gray-300 hover:bg-gray-600'}`}
 					>
 						{"<"}
 					</button>
@@ -512,15 +546,15 @@ const HistoricalTable = ({ initialData, isLoading, dataError, onFilterSubmit }) 
 					</span>
 					<button
 						onClick={() => handlePageChange(currentPage + 1)}
-						disabled={currentPage === totalPages || totalPages === 0}
-						className={`px-3 py-1 rounded text-sm ${currentPage === totalPages || totalPages === 0 ? 'bg-gray-600 text-gray-400 cursor-not-allowed' : 'bg-gray-700 text-gray-300 hover:bg-gray-600'}`}
+						disabled={serverPagination ? !pagination.hasNextPage : (currentPage === totalPages || totalPages === 0)}
+						className={`px-3 py-1 rounded text-sm ${(serverPagination ? !pagination.hasNextPage : (currentPage === totalPages || totalPages === 0)) ? 'bg-gray-600 text-gray-400 cursor-not-allowed' : 'bg-gray-700 text-gray-300 hover:bg-gray-600'}`}
 					>
 						{">"}
 					</button>
 					<button
 						onClick={() => handlePageChange(totalPages)}
-						disabled={currentPage === totalPages || totalPages === 0}
-						className={`px-3 py-1 rounded text-sm ${currentPage === totalPages || totalPages === 0 ? 'bg-gray-600 text-gray-400 cursor-not-allowed' : 'bg-gray-700 text-gray-300 hover:bg-gray-600'}`}
+						disabled={serverPagination ? !pagination.hasNextPage : (currentPage === totalPages || totalPages === 0)}
+						className={`px-3 py-1 rounded text-sm ${(serverPagination ? !pagination.hasNextPage : (currentPage === totalPages || totalPages === 0)) ? 'bg-gray-600 text-gray-400 cursor-not-allowed' : 'bg-gray-700 text-gray-300 hover:bg-gray-600'}`}
 					>
 						{">>"}
 					</button>

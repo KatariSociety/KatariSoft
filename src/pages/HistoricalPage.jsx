@@ -35,8 +35,18 @@ const HistoricalPage = () => {
 	const [error, setError] = useState(null);
 	const [distributionData, setDistributionData] = useState([]);
 	const [trendData, setTrendData] = useState([]);
+	
+	// Estado para paginación del servidor
+	const [pagination, setPagination] = useState({
+		currentPage: 1,
+		totalPages: 1,
+		totalRecords: 0,
+		limit: 50,
+		hasNextPage: false,
+		hasPrevPage: false
+	});
 
-	// Datos para StatCards y DistributionChart
+	// Datos para StatCards y DistributionChart (globales, no paginados)
 	const [stats, setStats] = useState({
 		total: 0,
 		culminadas: 0,
@@ -44,14 +54,97 @@ const HistoricalPage = () => {
 		fallidas: 0,
 	});
 
+	// Estado para ordenamiento
+	const [sortOrder, setSortOrder] = useState('desc');
+	
+	// Estado de carga para gráficas
+	const [chartsLoading, setChartsLoading] = useState(true);
+
 	useEffect(() => {
-		fetchFilteredData(); // Carga inicial sin filtros
+		const loadData = async () => {
+			await fetchChartData(); // Cargar datos para gráficas primero
+			await fetchFilteredData(); // Luego cargar datos de la tabla
+		};
+		loadData();
 	}, []);
 
 	/**
-	 * Carga los datos iniciales
+	 * Carga datos globales para las gráficas (sin paginación)
 	 */
-	const fetchFilteredData = async (filters = {}) => {
+	const fetchChartData = async () => {
+		try {
+			setChartsLoading(true);
+			//console.log('Cargando datos para gráficas...');
+			const result = await lecturasService.obtenerLecturasParaGraficas();
+			//console.log('Resultado de gráficas:', result);
+			
+			if (result.error === false && result.body.success) {
+				const data = result.body.data;
+				//console.log('Datos de gráficas obtenidos:', data.length, 'registros');
+				
+				// Ordenar datos localmente ya que el backend no soporta sort
+				const sortedData = data.sort((a, b) => {
+					const dateA = new Date(a.fecha_lectura);
+					const dateB = new Date(b.fecha_lectura);
+					return sortOrder === 'asc' ? dateA - dateB : dateB - dateA;
+				});
+				
+				// Procesar datos para estadísticas y gráfico de distribución
+				let culminadasCount = 0;
+				let conErroresCount = 0;
+				let fallidasCount = 0;
+
+				sortedData.forEach(item => {
+					const category = categorizeReading(item);
+					if (category === "success") culminadasCount++;
+					else if (category === "alert") conErroresCount++;
+					else if (category === "failed") fallidasCount++;
+				});
+
+				setStats({
+					total: sortedData.length,
+					culminadas: culminadasCount,
+					conErrores: conErroresCount,
+					fallidas: fallidasCount,
+				});
+
+				setDistributionData([
+					{ name: "Culminadas", value: culminadasCount, color: "#10B981" },
+					{ name: "Con Errores", value: conErroresCount, color: "#F59E0B" },
+					{ name: "Fallidas", value: fallidasCount, color: "#EF4444" },
+				]);
+
+				// Procesar datos para gráfico de tendencia (pruebas por mes)
+				const monthlyCounts = sortedData.reduce((acc, item) => {
+					const date = new Date(item.fecha_lectura);
+					const monthYear = date.toLocaleString('default', { month: 'short' }) + '-' + date.getFullYear().toString().slice(-2);
+					acc[monthYear] = (acc[monthYear] || 0) + 1;
+					return acc;
+				}, {});
+
+				// Convertir a formato que necesita el gráfico de tendencia
+				const trendChartData = Object.entries(monthlyCounts)
+					.map(([mes, pruebas]) => ({ mes, pruebas }))
+					.sort((a, b) => {
+						const dateA = new Date(a.mes.split('-')[0] + " 1, 20" + a.mes.split('-')[1]);
+						const dateB = new Date(b.mes.split('-')[0] + " 1, 20" + b.mes.split('-')[1]);
+						return dateA - dateB;
+					});
+				setTrendData(trendChartData);
+			} else {
+				console.error('Error en respuesta de gráficas:', result.body?.message || 'Respuesta no exitosa');
+			}
+		} catch (err) {
+			console.error('Error al cargar datos para gráficas:', err);
+		} finally {
+			setChartsLoading(false);
+		}
+	};
+
+	/**
+	 * Carga los datos de la tabla con paginación
+	 */
+	const fetchFilteredData = async (filters = {}, page = 1, limit = 50, sort = 'desc') => {
 		try {
 			setLoading(true);
 			setError(null);
@@ -61,62 +154,39 @@ const HistoricalPage = () => {
 			if (sensorId && eventoId) {
 				result = await lecturasService.obtenerLecturasPorSensorYEvento(sensorId, eventoId);
 			} else if (sensorId) {
-				result = await lecturasService.obtenerLecturasPorSensor(sensorId);
+				result = await lecturasService.obtenerLecturasPorSensor(sensorId, page, limit);
 			} else if (eventoId) {
-				result = await lecturasService.obtenerLecturasPorEvento(eventoId);
+				result = await lecturasService.obtenerLecturasPorEvento(eventoId, page, limit);
 			} else {
-				result = await lecturasService.obtenerLecturas();
+				result = await lecturasService.obtenerLecturas(page, limit);
 			}
 
 			if (result.error === false && result.body.success) {
-				const data = result.body.data;
+				let data = result.body.data;
+				const paginationData = result.body.pagination;
 				console.log("Lecturas obtenidas:", data);
+				console.log("Paginación:", paginationData);
+				
+				// Ordenar datos localmente ya que el backend no soporta sort
+				data = data.sort((a, b) => {
+					const dateA = new Date(a.fecha_lectura);
+					const dateB = new Date(b.fecha_lectura);
+					return sort === 'asc' ? dateA - dateB : dateB - dateA;
+				});
+				
 				setHistoricalData(data);
-
-				// Procesar datos para estadísticas y gráfico de distribución
-				let culminadasCount = 0;
-				let conErroresCount = 0;
-				let fallidasCount = 0;
-
-				data.forEach(item => {
-					const category = categorizeReading(item);
-					if (category === "success") culminadasCount++;
-					else if (category === "alert") conErroresCount++;
-					else if (category === "failed") fallidasCount++;
-				});
-
-				setStats({
-					total: data.length,
-					culminadas: culminadasCount,
-					conErrores: conErroresCount,
-					fallidas: fallidasCount,
-				});
-
-				setDistributionData([
-					{ name: "Culminadas", value: culminadasCount, color: "#10B981" }, // Color para ShieldCheck
-					{ name: "Con Errores", value: conErroresCount, color: "#F59E0B" }, // Color para ShieldAlert
-					{ name: "Fallidas", value: fallidasCount, color: "#EF4444" }, // Color para ShieldX
-				]);
-
-				// Procesar datos para gráfico de tendencia (pruebas por mes)
-				const monthlyCounts = data.reduce((acc, item) => {
-					const date = new Date(item.fecha_lectura);
-					// Formato 'ShortMonth-YY' para agrupar, ej: "Oct-23"
-					// Usar un formato numérico como 'YYYY-MM' para mejor ordenación si es necesario
-					const monthYear = date.toLocaleString('default', { month: 'short' }) + '-' + date.getFullYear().toString().slice(-2);
-					acc[monthYear] = (acc[monthYear] || 0) + 1;
-					return acc;
-				}, {});
-
-				// Convertir a formato que necesita el gráfico de tendencia
-				const trendChartData = Object.entries(monthlyCounts)
-					.map(([mes, pruebas]) => ({ mes, pruebas }))
-					.sort((a, b) => { // Simple sort, puede necesitar mejora para meses
-						const dateA = new Date(a.mes.split('-')[0] + " 1, 20" + a.mes.split('-')[1]);
-						const dateB = new Date(b.mes.split('-')[0] + " 1, 20" + b.mes.split('-')[1]);
-						return dateA - dateB;
+				
+				// Actualizar estado de paginación si está disponible
+				if (paginationData) {
+					setPagination({
+						currentPage: paginationData.currentPage,
+						totalPages: paginationData.totalPages,
+						totalRecords: paginationData.totalRecords,
+						limit: paginationData.limit,
+						hasNextPage: paginationData.hasNextPage,
+						hasPrevPage: paginationData.hasPrevPage
 					});
-				setTrendData(trendChartData);
+				}
 
 			} else {
 				setError("Error al cargar datos: " + (result.body.message || "Respuesta no exitosa"));
@@ -154,12 +224,23 @@ const HistoricalPage = () => {
 					isLoading={loading}
 					dataError={error}
 					onFilterSubmit={fetchFilteredData}
+					pagination={pagination}
+					sortOrder={sortOrder}
+					onSortChange={setSortOrder}
 				/>
 
 				{/* CHARTS */}
 				<div className='grid grid-col-1 lg:grid-cols-2 gap-8'>
-					<HistoricalTrendChart data={trendData} />
-					<HistoricalDistributionChart data={distributionData} />
+					{chartsLoading ? (
+						<div className="col-span-2 text-center py-8">
+							<div className="text-gray-400">Cargando datos para gráficas...</div>
+						</div>
+					) : (
+						<>
+							<HistoricalTrendChart data={trendData} />
+							<HistoricalDistributionChart data={distributionData} />
+						</>
+					)}
 				</div>
 			</main>
 		</div>

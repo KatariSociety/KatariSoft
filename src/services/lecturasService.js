@@ -13,12 +13,15 @@ const api = axios.create({
  */
 const lecturasService = {
   /**
-   * Obtiene todas las lecturas disponibles
+   * Obtiene todas las lecturas disponibles con paginación
+   * @param {number} page - Número de página (opcional, por defecto 1)
+   * @param {number} limit - Límite de registros por página (opcional, por defecto 50)
+   * @param {string} sortOrder - Orden de clasificación ('asc' o 'desc', opcional) - NO IMPLEMENTADO EN BACKEND
    * @returns {Promise} Promesa con el resultado de la petición
    */
-  obtenerLecturas: async () => {
+  obtenerLecturas: async (page = 1, limit = 50, sortOrder = 'desc') => {
     try {
-      const response = await api.get('/lecturas');
+      const response = await api.get(`/lecturas?page=${page}&limit=${limit}`);
       return response.data;
     } catch (error) {
       console.error('Error al obtener lecturas:', error);
@@ -27,13 +30,16 @@ const lecturasService = {
   },
 
   /**
-   * Obtiene todas las lecturas de un sensor específico
+   * Obtiene todas las lecturas de un sensor específico con paginación
    * @param {string|number} sensorId - ID del sensor
+   * @param {number} page - Número de página (opcional, por defecto 1)
+   * @param {number} limit - Límite de registros por página (opcional, por defecto 50)
+   * @param {string} sortOrder - Orden de clasificación ('asc' o 'desc', opcional) - NO IMPLEMENTADO EN BACKEND
    * @returns {Promise} Promesa con el resultado de la petición
    */
-  obtenerLecturasPorSensor: async (sensorId) => {
+  obtenerLecturasPorSensor: async (sensorId, page = 1, limit = 50, sortOrder = 'desc') => {
     try {
-      const response = await api.get(`/lecturas/sensor/${sensorId}`);
+      const response = await api.get(`/lecturas/sensor/${sensorId}?page=${page}&limit=${limit}`);
       return response.data;
     } catch (error) {
       console.error(`Error al obtener lecturas del sensor ${sensorId}:`, error);
@@ -82,6 +88,56 @@ const lecturasService = {
       return response.data;
     } catch (error) {
       console.error(`Error al obtener lecturas por fecha ${fecha}:`, error);
+      throw error;
+    }
+  },
+
+  /**
+   * Obtiene todas las lecturas de un evento específico con paginación
+   * @param {string|number} eventoId - ID del evento
+   * @param {number} page - Número de página (opcional, por defecto 1)
+   * @param {number} limit - Límite de registros por página (opcional, por defecto 50)
+   * @param {string} sortOrder - Orden de clasificación ('asc' o 'desc', opcional) - NO IMPLEMENTADO EN BACKEND
+   * @returns {Promise} Promesa con el resultado de la petición
+   */
+  obtenerLecturasPorEvento: async (eventoId, page = 1, limit = 50, sortOrder = 'desc') => {
+    try {
+      const response = await api.get(`/lecturas/evento/${eventoId}?page=${page}&limit=${limit}`);
+      return response.data;
+    } catch (error) {
+      console.error(`Error al obtener lecturas del evento ${eventoId}:`, error);
+      throw error;
+    }
+  },
+
+  /**
+   * Obtiene lecturas por sensor y evento específicos
+   * @param {string|number} sensorId - ID del sensor
+   * @param {string|number} eventoId - ID del evento
+   * @returns {Promise} Promesa con el resultado de la petición
+   */
+  obtenerLecturasPorSensorYEvento: async (sensorId, eventoId) => {
+    try {
+      const response = await api.get(`/lecturas/sensor/${sensorId}/evento/${eventoId}`);
+      return response.data;
+    } catch (error) {
+      console.error(`Error al obtener lecturas del sensor ${sensorId} y evento ${eventoId}:`, error);
+      throw error;
+    }
+  },
+
+  /**
+   * Obtiene todas las lecturas para gráficas (sin paginación)
+   * @param {string} sortOrder - Orden de clasificación ('asc' o 'desc', opcional)
+   * @returns {Promise} Promesa con el resultado de la petición
+   */
+  obtenerLecturasParaGraficas: async (sortOrder = 'desc') => {
+    try {
+      // El backend ahora tiene límite máximo de 500, así que obtenemos la primera página con 500 registros
+      const response = await api.get(`/lecturas?page=1&limit=500`);
+      return response.data;
+    } catch (error) {
+      console.error('Error al obtener lecturas para gráficas:', error);
       throw error;
     }
   },
