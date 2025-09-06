@@ -270,7 +270,7 @@ export const SensorsDataProvider = ({ children }) => {
         
         // Escuchar estado del Arduino con debug
         socketRef.current.on('arduino_status', (status) => {
-            console.log('🔌 Estado del Arduino recibido:', status);
+            //console.log('🔌 Estado del Arduino recibido:', status);
             
             // Solo actualizar el estado si realmente hay un cambio
             setIsArduinoConnected(prev => {

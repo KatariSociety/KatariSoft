@@ -8,7 +8,7 @@ import sensoresService from "../../services/sensoresService";
  * Tabla de historial de lecturas
  * @returns Tabla de historial de lecturas
  */
-const HistoricalTable = ({ initialData, isLoading, dataError }) => {
+const HistoricalTable = ({ initialData, isLoading, dataError, onFilterSubmit }) => {
 	const [showAlert, setShowAlert] = useState(false);
 	const [alertMessage, setAlertMessage] = useState("Acción no disponible."); // Para mensajes de alerta dinámicos
 	const [searchTerm, setSearchTerm] = useState("");
@@ -22,10 +22,11 @@ const HistoricalTable = ({ initialData, isLoading, dataError }) => {
 	const indexOfFirstItem = indexOfLastItem - itemsPerPage;
 	const currentItems = filteredHistorical.slice(indexOfFirstItem, indexOfLastItem);
 	const totalPages = Math.ceil(filteredHistorical.length / itemsPerPage);
+	const [sensorIdFilter, setSensorIdFilter] = useState("");
+	const [eventoIdFilter, setEventoIdFilter] = useState("");
+	const [detailItem, setDetailItem] = useState(null);
+	const [showDetailModal, setShowDetailModal] = useState(false);
 
-	/**
-	 * Exporta los datos en CSV
-	 */
 	const exportToCSV = () => {
 		const headers = ["ID", "Sensor ID", "Evento ID", "Fecha", "Valor"];
 		if (filteredHistorical.length === 0) {
@@ -55,15 +56,6 @@ const HistoricalTable = ({ initialData, isLoading, dataError }) => {
 		document.body.removeChild(link);
 	};
 
-	// const handleExportSingle = (item) => { // TODO: Implementar esta función si es necesaria
-	// 	console.log("Exportar item individual:", item);
-	// 	setAlertMessage(`Exportar item ${item.id_lectura} no implementado.`);
-	// 	setShowAlert(true);
-	// };
-
-	/**
-	 * Carga los nombres de los sensores cuando cambian los datos iniciales
-	 */
 	useEffect(() => {
 		const loadSensorNames = async () => {
 			if (initialData && initialData.length > 0) {
@@ -72,18 +64,18 @@ const HistoricalTable = ({ initialData, isLoading, dataError }) => {
 				let updated = false;
 
 				for (const id of uniqueSensorIds) {
-					if (!newSensorNames[id]) { // Cargar solo si no existe ya
+					if (!newSensorNames[id]) {
 						try {
 							const result = await sensoresService.obtenerSensorPorId(id);
 							if (result.error === false && result.body.success && result.body.data.length > 0) {
 								newSensorNames[id] = result.body.data[0].nombre_sensor;
 								updated = true;
 							} else {
-								newSensorNames[id] = `Sensor ${id}`; // Fallback
+								newSensorNames[id] = `Sensor ${id}`;
 							}
 						} catch (err) {
 							console.error(`Error al obtener nombre del sensor ${id}:`, err);
-							newSensorNames[id] = `Sensor ${id}`; // Fallback
+							newSensorNames[id] = `Sensor ${id}`;
 						}
 					}
 				}
@@ -134,28 +126,15 @@ const HistoricalTable = ({ initialData, isLoading, dataError }) => {
 		// El useEffect se encargará de re-filtrar
 	};
 
-	/**
-	 * Maneja el cambio de la cantidad de items por página
-	 * @param {*} e evento de cambio
-	 */
 	const handleItemsPerPageChange = (e) => {
 		setItemsPerPage(Number(e.target.value));
 		setCurrentPage(1); // Resetear a primera página
 	};
 
-	/**
-	 * Maneja el cambio de página
-	 * @param {*} pageNumber página actual
-	 */
 	const handlePageChange = (pageNumber) => {
 		setCurrentPage(pageNumber);
 	};
 
-	/**
-	 * Determina el icono según el contenido
-	 * @param {*} item item a determinar
-	 * @returns icono según el contenido
-	 */
 	const determineIcon = (item) => {
 		try {
 			if (!item.valor_lectura || !item.valor_lectura.startsWith('{')) {
@@ -227,8 +206,6 @@ const HistoricalTable = ({ initialData, isLoading, dataError }) => {
 		}
 	};
 
-	const [detailItem, setDetailItem] = useState(null);
-	const [showDetailModal, setShowDetailModal] = useState(false);
 	const handleViewDetails = (item) => {
 		setDetailItem(item);
 		setShowDetailModal(true);
@@ -251,6 +228,16 @@ const HistoricalTable = ({ initialData, isLoading, dataError }) => {
 			return jsonStr;
 		}
 	};
+
+	const handleApplyServerFilters = () => {
+		onFilterSubmit({ sensorId: sensorIdFilter, eventoId: eventoIdFilter });
+	};
+
+    const handleClearServerFilters = () => {
+        setSensorIdFilter("");
+        setEventoIdFilter("");
+        onFilterSubmit({});
+    }
 
 	return (
 		<motion.div
@@ -286,23 +273,48 @@ const HistoricalTable = ({ initialData, isLoading, dataError }) => {
 					</motion.button>
 				</div>
 			</div>
-
-			{/*Paginacion y Filtros Icono*/}
-			<div className='flex flex-col sm:flex-row justify-between items-center mb-6 gap-4'>
-				<div>
-					<label htmlFor="itemsPerPage" className='text-gray-400'>Mostrar: </label>
-					<select
-						id="itemsPerPage"
-						value={itemsPerPage}
-						onChange={handleItemsPerPageChange}
-						className='bg-gray-700 text-white rounded-lg p-2 ml-2'
-					>
-						<option value={5}>5</option>
-						<option value={10}>10</option>
-						<option value={15}>15</option>
-						<option value={50}>50</option>
-					</select>
+			
+			{/*Filtros de servidor*/}
+			<div className='flex flex-col sm:flex-row justify-start items-center mb-6 gap-4 p-4 bg-gray-900/50 rounded-lg'>
+				<span className="text-gray-300 font-medium">Filtros Avanzados:</span>
+				<div className='relative'>
+					<input
+						type='text'
+						placeholder='ID del Sensor'
+						className='w-full sm:w-40 bg-gray-700 text-white placeholder-gray-400 rounded-lg pl-4 pr-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500'
+						value={sensorIdFilter}
+						onChange={(e) => setSensorIdFilter(e.target.value)}
+					/>
 				</div>
+				<div className='relative'>
+					<input
+						type='text'
+						placeholder='ID del Evento'
+						className='w-full sm:w-40 bg-gray-700 text-white placeholder-gray-400 rounded-lg pl-4 pr-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500'
+						value={eventoIdFilter}
+						onChange={(e) => setEventoIdFilter(e.target.value)}
+					/>
+				</div>
+				<motion.button
+					className='px-4 h-[40px] bg-blue-600 hover:bg-blue-500 text-white rounded-lg transition-colors flex items-center justify-center'
+					whileHover={{ scale: 1.05 }}
+					whileTap={{ scale: 0.95 }}
+					onClick={handleApplyServerFilters}
+				>
+					Aplicar Filtros
+				</motion.button>
+                <motion.button
+					className='px-4 h-[40px] bg-gray-600 hover:bg-gray-500 text-white rounded-lg transition-colors flex items-center justify-center'
+					whileHover={{ scale: 1.05 }}
+					whileTap={{ scale: 0.95 }}
+					onClick={handleClearServerFilters}
+				>
+					Limpiar
+				</motion.button>
+			</div>
+
+			{/*Filtros*/}
+			<div className='flex flex-col sm:flex-row justify-between items-center mb-6 gap-4'>
 				<div className='flex space-x-2'>
 					<button
 						title="Filtrar Culminadas"
@@ -458,8 +470,23 @@ const HistoricalTable = ({ initialData, isLoading, dataError }) => {
 					</tbody>
 				</table>
 			</div>
+
 			{/* Controles de paginación */}
 			<div className='flex justify-between items-center mt-6'>
+				<div>
+					<label htmlFor="itemsPerPage" className='text-gray-400'>Mostrar: </label>
+					<select
+						id="itemsPerPage"
+						value={itemsPerPage}
+						onChange={handleItemsPerPageChange}
+						className='bg-gray-700 text-white rounded-lg p-2 ml-2'
+					>
+						<option value={5}>5</option>
+						<option value={10}>10</option>
+						<option value={15}>15</option>
+						<option value={50}>50</option>
+					</select>
+				</div>
 				<span className="text-gray-400 text-sm">
 					Mostrando {currentItems.length > 0 ? indexOfFirstItem + 1 : 0}-
 					{Math.min(indexOfLastItem, filteredHistorical.length)} de {filteredHistorical.length} registros
