@@ -214,58 +214,7 @@ const RealTimePage = () => {
                                 </h2>
                             </motion.div>
                             
-                            {/* Sensores de navegación y posición */}
-                            <motion.div
-                                className='mb-6'
-                                initial={{ y: 20 }}
-                                animate={{ y: 0 }}
-                                transition={{ duration: 0.4, ease: 'easeOut' }}
-                            >
-                                <h3 className='text-base font-semibold text-gray-300 mb-3 flex items-center'>
-                                    <Navigation className='w-5 h-5 mr-2 text-blue-400' />
-                                    Sistema de Navegación GPS
-                                </h3>
-                                <div className='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 gap-3'>
-                                    <div onClick={() => setShowGPSModal(true)} className='cursor-pointer transform hover:scale-105 transition-transform'>
-                                        <StatCard 
-                                            name='Posición GPS' 
-                                            icon={MapPin} 
-                                            value={arduinoData.status_gps && 
-                                                typeof arduinoData.gps_lat === 'number' && 
-                                                typeof arduinoData.gps_lng === 'number' ? 
-                                                `${safeToFixed(arduinoData.gps_lat, 6)}, ${safeToFixed(arduinoData.gps_lng, 6)}` : 
-                                                'Sin señal GPS'
-                                            } 
-                                            color={getStatusColor(arduinoData.status_gps)} 
-                                        />
-                                    </div>
-                                    <StatCard 
-                                        name='Altitud GPS' 
-                                        icon={Rocket} 
-                                        value={arduinoData.status_gps ? 
-                                            `${safeToFixed(arduinoData.gps_alt, 1)} m` : 
-                                            'Sin datos'
-                                        } 
-                                        color={getStatusColor(arduinoData.status_gps)} 
-                                    />
-                                    <StatCard 
-                                        name='Satélites' 
-                                        icon={Satellite} 
-                                        value={arduinoData.status_gps ? 
-                                            `${arduinoData.gps_sats} sats` : 
-                                            'Buscando...'
-                                        } 
-                                        color={arduinoData.gps_sats >= 4 ? '#10B981' : '#F59E0B'} 
-                                    />
-                                    <StatCard 
-                                        name='Estado Calibración' 
-                                        icon={AlertTriangle} 
-                                        value={arduinoData.calibrated ? 'Completada' : 'En proceso'} 
-                                        color={arduinoData.calibrated ? '#10B981' : '#F59E0B'} 
-                                    />
-                                </div>
-                            </motion.div>
-
+                           
                             {/* Sensores de movimiento */}
                             <motion.div
                                 className='mb-6'
@@ -364,6 +313,8 @@ const RealTimePage = () => {
                                     />
                                 </div>
                             </motion.div>
+
+                            
                         </div>
 
                         {/* SATELITE */}
@@ -433,6 +384,57 @@ const RealTimePage = () => {
                                         }}
                                         threshold={3}
                                         icon={Thermometer}
+                                    />
+                                </div>
+                            </motion.div>
+                             {/* Sensores de navegación y posición */}
+                            <motion.div
+                                className='mb-6'
+                                initial={{ y: 20 }}
+                                animate={{ y: 0 }}
+                                transition={{ duration: 0.4, ease: 'easeOut' }}
+                            >
+                                <h3 className='text-base font-semibold text-gray-300 mb-3 flex items-center'>
+                                    <Navigation className='w-5 h-5 mr-2 text-blue-400' />
+                                    Sistema de Navegación GPS
+                                </h3>
+                                <div className='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 gap-3'>
+                                    <div onClick={() => setShowGPSModal(true)} className='cursor-pointer transform hover:scale-105 transition-transform'>
+                                        <StatCard 
+                                            name='Posición GPS' 
+                                            icon={MapPin} 
+                                            value={arduinoData.status_gps && 
+                                                typeof arduinoData.gps_lat === 'number' && 
+                                                typeof arduinoData.gps_lng === 'number' ? 
+                                                `${safeToFixed(arduinoData.gps_lat, 6)}, ${safeToFixed(arduinoData.gps_lng, 6)}` : 
+                                                'Sin señal GPS'
+                                            } 
+                                            color={getStatusColor(arduinoData.status_gps)} 
+                                        />
+                                    </div>
+                                    <StatCard 
+                                        name='Altitud GPS' 
+                                        icon={Rocket} 
+                                        value={arduinoData.status_gps ? 
+                                            `${safeToFixed(arduinoData.gps_alt, 1)} m` : 
+                                            'Sin datos'
+                                        } 
+                                        color={getStatusColor(arduinoData.status_gps)} 
+                                    />
+                                    <StatCard 
+                                        name='Satélites' 
+                                        icon={Satellite} 
+                                        value={arduinoData.status_gps ? 
+                                            `${arduinoData.gps_sats} sats` : 
+                                            'Buscando...'
+                                        } 
+                                        color={arduinoData.gps_sats >= 4 ? '#10B981' : '#F59E0B'} 
+                                    />
+                                    <StatCard 
+                                        name='Estado Calibración' 
+                                        icon={AlertTriangle} 
+                                        value={arduinoData.calibrated ? 'Completada' : 'En proceso'} 
+                                        color={arduinoData.calibrated ? '#10B981' : '#F59E0B'} 
                                     />
                                 </div>
                             </motion.div>
