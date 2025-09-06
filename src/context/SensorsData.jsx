@@ -371,8 +371,8 @@ export const SensorsDataProvider = ({ children }) => {
         
         // Escuchar datos completos del Arduino (JSON format como en tu ejemplo)
         socketRef.current.on('arduino_data', (arduinoData) => {
-            console.log('📡 Datos completos del Arduino recibidos:', typeof arduinoData, arduinoData);
-            console.log("🔍 Estado actual: activeMode =", activeMode, "| useRealMPU =", useRealMPU);
+            console.log('📡 Datos completos del Arduino recibidos:', typeof arduinoData);
+            console.log("🔍 Estado actual: activeMode =", activeMode, "| useRealMPU =", useRealMPU, "| useSimulation =", useSimulation);
             
             // Parsear los datos si vienen como string
             let parsedData = arduinoData;
@@ -386,13 +386,19 @@ export const SensorsDataProvider = ({ children }) => {
                 }
             }
             
-            // Solo procesar si estamos en modo unitTest
-            if (activeMode === 'unitTest') {
-                console.log("%c 🧪 MODO PRUEBA UNITARIA - PROCESANDO DATOS REALES DEL ARDUINO", 
+            // Procesar datos si estamos en modo unitTest O en modo realtime O si no estamos usando simulación
+            if (activeMode === 'unitTest' || activeMode === 'realtime' || !useSimulation) {
+                console.log("%c 🚀 MODO DATOS REALES - PROCESANDO DATOS DEL ARDUINO", 
                     "background-color: #10b981; color: white; padding: 8px; border-radius: 4px; font-weight: bold;"
                 );
                 
-                console.log("📊 Datos recibidos del Arduino:");
+                if (activeMode === 'unitTest') {
+                    console.log("📊 Datos recibidos del Arduino (Modo Prueba Unitaria):");
+                } else if (activeMode === 'realtime') {
+                    console.log("📊 Datos recibidos del Arduino (Modo Tiempo Real):");
+                } else {
+                    console.log("📊 Datos recibidos del Arduino (Modo Normal):");
+                }
                 console.log(parsedData);
                 
                 // Mostrar datos GPS específicamente si están presentes
@@ -476,7 +482,7 @@ export const SensorsDataProvider = ({ children }) => {
                     return newData;
                 });
             } else {
-                console.log("🔄 Datos del Arduino recibidos pero no en modo unitTest, ignorando");
+                console.log("🔄 Datos del Arduino recibidos pero estamos en modo simulación, ignorando");
             }
         });
         
@@ -484,9 +490,9 @@ export const SensorsDataProvider = ({ children }) => {
         socketRef.current.on('sensor_data', (sensorData) => {
             console.log('📊 Datos del sensor recibidos (sensor_data):', typeof sensorData);
             
-            // Reenviar al manejador de arduino_data para procesamiento consistente
-            if (activeMode === 'unitTest') {
-                console.log('🔄 Reenviando sensor_data a arduino_data handler');
+            // Procesar los datos si no estamos en modo simulación
+            if (!useSimulation) {
+                console.log('🔄 Procesando sensor_data como datos reales');
                 // Trigger the arduino_data handler with the same data
                 socketRef.current.emit('arduino_data', sensorData);
             }
@@ -511,6 +517,28 @@ export const SensorsDataProvider = ({ children }) => {
             }
         };
     }, [activeMode, useRealMPU]); // Añadido useRealMPU como dependencia
+
+    // Función para activar datos reales del Arduino en modo normal
+    const startRealTimeMode = () => {
+        console.log("🚀 Iniciando modo TIEMPO REAL - datos completos del Arduino");
+        
+        if (intervalRef.current) {
+            clearInterval(intervalRef.current);
+            intervalRef.current = null;
+        }
+        
+        setActiveMode('realtime');
+        setUseSimulation(false);
+        setUseRealMPU(false);
+        
+        // Solicitar conexión al Arduino
+        if (socketRef.current && socketRef.current.connected) {
+            console.log("📡 Solicitando conexión al Arduino para modo tiempo real...");
+            socketRef.current.emit('connect_arduino', { clientType: 'mainContext' });
+        }
+        
+        console.log("⏳ Modo tiempo real activado - esperando datos del Arduino...");
+    };
 
     // Función para iniciar con datos reales del Arduino (modo normal)
     const startWithRealData = () => {
@@ -682,6 +710,7 @@ export const SensorsDataProvider = ({ children }) => {
             data, 
             startGeneratingData, 
             stopGeneratingData,
+            startRealTimeMode,
             isArduinoConnected,
             activeMode
         }}>
