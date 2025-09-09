@@ -1,12 +1,4 @@
-import axios from 'axios';
-
-// Configuración base de axios
-const api = axios.create({
-  baseURL: 'http://localhost:3000',
-  headers: {
-    'Content-Type': 'application/json',
-  },
-});
+import api from './api/api';
 
 /**
  * Servicio para gestionar las lecturas de sensores
