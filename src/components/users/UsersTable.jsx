@@ -1,39 +1,35 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Search } from "lucide-react";
+import { Search, Pencil, Trash2, Info } from "lucide-react";
 import Alert from '../common/Alert';
-
-const userData = [
-	{ id: 1, name: "Sarah Cabeza", email: "integrante@example.com", role: "Mission leader", status: "Active" },
-	{ id: 2, name: "Jarby Salazar", email: "integrante@example.com", role: "Safety Manager", status: "Active" },
-	{ id: 3, name: "Santiago Chaves", email: "integrante@example.com", role: "Technology Manager", status: "Active" },		
-	{ id: 4, name: "Esteban Yepez", email: "integrante@example.com", role: "Estación Terrena", status: "Active" },
-	{ id: 5, name: "Jhonatan Becerra", email: "integrante@example.com", role: "Aviónica", status: "Active" },
-	{ id: 6, name: "Jose Velasco ", email: "integrante@example.com", role: "Aviónica", status: "Active" },
-	{ id: 7, name: "Alejandro Torres", email: "integrante@example.com", role: "Aviónica", status: "Active" },
-	{ id: 8, name: "Laura García", email: "integrante@example.com", role: "Aeroestructura", status: "Active" },
-	{ id: 9, name: "Aleja Hurtado", email: "integrante@example.com", role: "Recuperación", status: "Active" },
-	{ id: 10, name: "Elizabeth Muñoz", email: "integrante@example.com", role: "Recuperación", status: "Active" },
-	{ id: 11, name: "Fabian Ramirez", email: "integrante@example.com", role: "Recuperación", status: "Active" },
-	{ id: 12, name: "Alejandra Freire", email: "integrante@example.com", role: "Propulsión", status: "Active" },
-	{ id: 13, name: "Oliver Davila", email: "integrante@example.com", role: "Marketing/Finanzas", status: "Active" },
-	{ id: 14, name: "Sebastian Vivas", email: "integrante@example.com", role: "Marketing/Finanzas", status: "Active" },
-	{ id: 15, name: "Juan Lozada", email: "integrante@example.com", role: "Marketing/Finanzas", status: "Active" },	
-	{ id: 16, name: "Alejandro Patiño", email: "integrante@example.com", role: "Aeroestructura", status: "Inactive" },
-];
+import UserInfoModal from "./UserInfoModal";
+import usersData from '../../context/UsersData.json';
 
 const UsersTable = () => {
 	const [showAlert, setShowAlert] = useState(false);
 	const [searchTerm, setSearchTerm] = useState("");
-	const [filteredUsers, setFilteredUsers] = useState(userData);
+	const [filteredUsers, setFilteredUsers] = useState([]);
+	const [users, setUsers] = useState([]);
+	const [showInfoModal, setShowInfoModal] = useState(false);
+	const [selectedUser, setSelectedUser] = useState(null);
+
+	useEffect(() => {
+		setUsers(usersData);
+		setFilteredUsers(usersData);
+	}, []);
 
 	const handleSearch = (e) => {
 		const term = e.target.value.toLowerCase();
 		setSearchTerm(term);
-		const filtered = userData.filter(
+		const filtered = users.filter(
 			(user) => user.name.toLowerCase().includes(term) || user.email.toLowerCase().includes(term)
 		);
 		setFilteredUsers(filtered);
+	};
+
+	const handleShowInfo = (user) => {
+		setSelectedUser(user);
+		setShowInfoModal(true);
 	};
 
 	return (
@@ -124,21 +120,34 @@ const UsersTable = () => {
 								</td>
 
 								<td className='px-6 py-4 whitespace-nowrap text-sm text-gray-300'>
-									<button className='text-indigo-400 hover:text-indigo-300 mr-2' onClick={() => setShowAlert(true)}>Edit</button>
-									<button className='text-red-400 hover:text-red-300' onClick={() => setShowAlert(true)}>Delete</button>									
+									<button className='text-indigo-400 hover:text-indigo-300 mr-2' onClick={() => setShowAlert(true)}>
+										<Pencil size={20} />
+									</button>
+									<button className='text-red-400 hover:text-red-300 mr-2' onClick={() => setShowAlert(true)}>
+										<Trash2 size={20} />
+									</button>
+									<button className='text-blue-400 hover:text-blue-300' onClick={() => handleShowInfo(user)}>
+										<Info size={20} />
+									</button>
 								</td>
 							</motion.tr>
 						))}
 					</tbody>
 				</table>
 			</div>
-			<Alert 
+			<Alert
 				title="Aviso"
-				message="Inicie sesión para realiazar esta acción"
+				message="Inicie sesión para realizar esta acción"
 				isVisible={showAlert}
 				onClose={() => setShowAlert(false)}
+			/>
+			<UserInfoModal
+				isVisible={showInfoModal}
+				onClose={() => setShowInfoModal(false)}
+				user={selectedUser}
 			/>
 		</motion.div>
 	);
 };
 export default UsersTable;
+

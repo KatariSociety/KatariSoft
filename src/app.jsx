@@ -5,7 +5,7 @@ import { SensorsDataProvider } from './context/SensorsData';
 // Components
 import Sidebar from "./components/common/Sidebar";
 
-// Pages
+// Pages - import directly for faster navigation
 import HomePage from "./pages/HomePage";
 import RealTimePage from "./pages/RealTimePage";
 import HistoricalPage from "./pages/HistoricalPage";

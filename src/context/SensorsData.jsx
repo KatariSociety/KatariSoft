@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState, useRef } from "react";
+import React, { createContext, useContext, useEffect, useState, useRef, useMemo } from "react";
 import io from 'socket.io-client';
 
 const SensorsDataContext = createContext();
@@ -705,15 +705,17 @@ export const SensorsDataProvider = ({ children }) => {
         return () => stopGeneratingData(); // Cleanup al desmontar
     }, []);
 
+    const contextValue = useMemo(() => ({
+        data, 
+        startGeneratingData, 
+        stopGeneratingData,
+        startRealTimeMode,
+        isArduinoConnected,
+        activeMode
+    }), [data, isArduinoConnected, activeMode]);
+
     return (
-        <SensorsDataContext.Provider value={{ 
-            data, 
-            startGeneratingData, 
-            stopGeneratingData,
-            startRealTimeMode,
-            isArduinoConnected,
-            activeMode
-        }}>
+        <SensorsDataContext.Provider value={contextValue}>
             {children}
         </SensorsDataContext.Provider>
     );

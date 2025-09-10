@@ -1,0 +1,18 @@
+[
+  { "id": 1, "name": "Sarah Cabeza", "email": "integrante@example.com", "role": "Mission leader", "status": "Active", "bio": "Líder de misión, responsable de la coordinación general." },
+  { "id": 2, "name": "Jarby Salazar", "email": "integrante@example.com", "role": "Safety Manager", "status": "Active", "bio": "Encargado de la seguridad y protocolos." },
+  { "id": 3, "name": "Santiago Chaves", "email": "integrante@example.com", "role": "Technology Manager", "status": "Active", "bio": "Gestor de tecnología y sistemas." },
+  { "id": 4, "name": "Esteban Yepez", "email": "integrante@example.com", "role": "Estación Terrena", "status": "Active", "bio": "Operador de estación terrena." },
+  { "id": 5, "name": "Jhonatan Becerra", "email": "integrante@example.com", "role": "Aviónica", "status": "Active", "bio": "Especialista en aviónica." },
+  { "id": 6, "name": "Jose Velasco", "email": "integrante@example.com", "role": "Aviónica", "status": "Active", "bio": "Especialista en aviónica." },
+  { "id": 7, "name": "Alejandro Torres", "email": "integrante@example.com", "role": "Aviónica", "status": "Active", "bio": "Especialista en aviónica." },
+  { "id": 8, "name": "Laura García", "email": "integrante@example.com", "role": "Aeroestructura", "status": "Active", "bio": "Encargada de aeroestructura." },
+  { "id": 9, "name": "Aleja Hurtado", "email": "integrante@example.com", "role": "Recuperación", "status": "Active", "bio": "Responsable de recuperación." },
+  { "id": 10, "name": "Elizabeth Muñoz", "email": "integrante@example.com", "role": "Recuperación", "status": "Active", "bio": "Responsable de recuperación." },
+  { "id": 11, "name": "Fabian Ramirez", "email": "integrante@example.com", "role": "Recuperación", "status": "Active", "bio": "Responsable de recuperación." },
+  { "id": 12, "name": "Alejandra Freire", "email": "integrante@example.com", "role": "Propulsión", "status": "Active", "bio": "Especialista en propulsión." },
+  { "id": 13, "name": "Oliver Davila", "email": "integrante@example.com", "role": "Marketing/Finanzas", "status": "Active", "bio": "Encargado de marketing y finanzas." },
+  { "id": 14, "name": "Sebastian Vivas", "email": "integrante@example.com", "role": "Marketing/Finanzas", "status": "Active", "bio": "Encargado de marketing y finanzas." },
+  { "id": 15, "name": "Juan Lozada", "email": "integrante@example.com", "role": "Marketing/Finanzas", "status": "Active", "bio": "Encargado de marketing y finanzas." },
+  { "id": 16, "name": "Alejandro Patiño", "email": "integrante@example.com", "role": "Aeroestructura", "status": "Inactive", "bio": "Encargado de aeroestructura." }
+]

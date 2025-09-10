@@ -18,5 +18,14 @@ export default defineConfig(({ mode, command }) => {
         '/api': 'http://localhost:3000',
       } : {},
     },
+    optimizeDeps: {
+      include: [
+        'react',
+        'react-dom',
+        'react-router-dom',
+        'framer-motion',
+        'lucide-react'
+      ]
+    }
   };
 });
