@@ -53,7 +53,7 @@ export const processReadingsData = async (rawReadings) => {
     rawReadings.forEach((reading, index) => {
         const date = normalizeDate(reading.fecha_lectura);
         let parsedValue = {};
-        
+
         try {
             if (reading.valor_lectura && reading.valor_lectura.startsWith('{')) {
                 parsedValue = JSON.parse(reading.valor_lectura);
@@ -81,7 +81,7 @@ export const processReadingsData = async (rawReadings) => {
                 altitude: parsedValue.altitude.value
             });
         }
-        
+
         // 3. Extraer datos para Presión vs Altitud
         if (parsedValue.pressure && typeof parsedValue.pressure.value === 'number' && parsedValue.altitude && typeof parsedValue.altitude.value === 'number') {
             processed.pressureAltitudeData.push({
@@ -93,10 +93,28 @@ export const processReadingsData = async (rawReadings) => {
 
         // 4. Extraer datos para IMU (Acelerómetro y Giroscopio)
         if (parsedValue.accelerometer && parsedValue.gyroscope) {
+            const accel = {
+                x: parsedValue.accelerometer.x?.value || 0,
+                y: parsedValue.accelerometer.y?.value || 0,
+                z: parsedValue.accelerometer.z?.value || 0
+            };
+            const gyro = {
+                x: parsedValue.gyroscope.x?.value || 0,
+                y: parsedValue.gyroscope.y?.value || 0,
+                z: parsedValue.gyroscope.z?.value || 0
+            };
+
+            // Cálculo de la magnitud del vector
+            const accelMagnitude = Math.sqrt(accel.x ** 2 + accel.y ** 2 + accel.z ** 2);
+            const gyroMagnitude = Math.sqrt(gyro.x ** 2 + gyro.y ** 2 + gyro.z ** 2);
+
             processed.imuData.push({
                 time: date.getTime(),
-                accel: { x: parsedValue.accelerometer.x?.value, y: parsedValue.accelerometer.y?.value, z: parsedValue.accelerometer.z?.value },
-                gyro: { x: parsedValue.gyroscope.x?.value, y: parsedValue.gyroscope.y?.value, z: parsedValue.gyroscope.z?.value },
+                timeFormatted: date.toLocaleTimeString(),
+                accel,
+                gyro,
+                accelMagnitude,
+                gyroMagnitude,
             });
         }
 
@@ -104,6 +122,7 @@ export const processReadingsData = async (rawReadings) => {
         if (parsedValue.co2 && parsedValue.temperature && parsedValue.humidity) {
             processed.environmentalData.push({
                 time: date.getTime(),
+                timeFormatted: date.toLocaleTimeString(),
                 co2: parsedValue.co2.value,
                 temperature: parsedValue.temperature.value,
                 humidity: parsedValue.humidity.value

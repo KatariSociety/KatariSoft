@@ -2,8 +2,9 @@ import { useEffect, useState } from "react";
 import lecturasService from "../../services/lecturasService";
 import { processReadingsData } from "../../utils/readingParser";
 import AltitudeChart from "./AltitudeChart";
-import EnvironmentalCharts from "./EnvironmentalCharts";
-import ImuCharts from "./ImuCharts";
+import EnvironmentalTimeSeriesChart from "./EnvironmentalTimeSeriesChart";
+import ImuMagnitudeChart from "./ImuMagnitudeChart";
+import ImuTimeSeriesChart from "./ImuTimeSeriesChart";
 import PressureAltitudeChart from "./PressureAltitudeChart";
 import ReadingsTable from "./ReadingsTable";
 
@@ -67,11 +68,14 @@ const ReadingsView = ({ event }) => {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 {processedData.altitudeData.length > 0 && <AltitudeChart data={processedData.altitudeData} />}
                 {processedData.pressureAltitudeData.length > 0 && <PressureAltitudeChart data={processedData.pressureAltitudeData} />}
-            </div>
+                
+                {/* Gráficas IMU */}
+                {processedData.imuData.length > 0 && <ImuTimeSeriesChart data={processedData.imuData} />}
+                {processedData.imuData.length > 0 && <ImuMagnitudeChart data={processedData.imuData} />}
 
-            {/* Componentes modulares para grupos de gráficas */}
-            {processedData.imuData.length > 0 && <ImuCharts data={processedData.imuData} />}
-            {processedData.environmentalData.length > 0 && <EnvironmentalCharts data={processedData.environmentalData} />}
+                {/* Gráficas Ambientales */}
+                {processedData.environmentalData.length > 0 && <EnvironmentalTimeSeriesChart data={processedData.environmentalData} />}
+            </div>
         </div>
     );
 };
