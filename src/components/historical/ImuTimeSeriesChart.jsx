@@ -2,7 +2,7 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Responsi
 import { motion } from "framer-motion";
 import { Zap } from "lucide-react";
 
-const ImuTimeSeriesChart = ({ data }) => {
+const ImuTimeSeriesChart = ({ data, onHover }) => {
     return (
         <motion.div
             className='bg-gray-800 bg-opacity-50 backdrop-blur-lg shadow-lg rounded-xl p-6 border border-gray-700'
@@ -15,7 +15,7 @@ const ImuTimeSeriesChart = ({ data }) => {
             </div>
             <div className="h-80">
                 <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={data}>
+                    <LineChart data={data} onMouseMove={onHover} onMouseLeave={() => onHover(null)}>
                         <CartesianGrid strokeDasharray='3 3' stroke='#374151' />
                         <XAxis dataKey="timeFormatted" stroke='#9CA3AF' fontSize={12} />
                         <YAxis stroke='#9CA3AF' fontSize={12} />

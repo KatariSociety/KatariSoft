@@ -87,7 +87,7 @@ const EventsTable = ({ events, isLoading, error, onEventSelect, selectedEventId,
                             >
                                 <td className='px-4 py-4 whitespace-nowrap text-sm text-white font-medium'>{event.nombre_evento}</td>
                                 <td className='px-4 py-4 text-sm text-gray-300 max-w-sm truncate'>{event.descripcion_evento}</td>
-                                <td className='px-4 py-4 whitespace-nowrap text-sm text-gray-300'>{new Date(event.fecha_inicio_evento).toLocaleDateString()}</td>
+                                <td className='px-4 py-4 whitespace-nowrap text-sm text-gray-300'>{event.fecha_inicio_evento}</td>
                                 <td className={`px-4 py-4 whitespace-nowrap text-sm font-semibold ${getStatusColor(event.estado_evento)}`}>{event.estado_evento}</td>
                                 <td className='px-4 py-4 whitespace-nowrap text-sm'>
                                     <button onClick={(e) => { e.stopPropagation(); handleEditEvent(event); }} className='text-gray-400 hover:text-white'>
