@@ -4,6 +4,7 @@ import { SensorsDataProvider } from './context/SensorsData';
 
 // Components
 import Sidebar from "./components/common/Sidebar";
+import MCPChatbot from "./components/common/MCPChatbot";
 
 // Pages - import directly for faster navigation
 import HomePage from "./pages/HomePage";
@@ -36,6 +37,9 @@ function App() {
           <Route path={`${basePath}/settings`} element={<SettingsPage />} />
           <Route path={`${basePath}/login`} element={<LoginPage />} />
         </Routes>
+
+        {/* Chatbot MCP - Disponible en todas las vistas */}
+        <MCPChatbot />
       </div>
     </SensorsDataProvider>
   );

@@ -12,6 +12,7 @@ import EnergyConsumptionChart from "../components/dashboard/EnergyConsumptionCha
 import GeoSpatialMap from "../components/dashboard/GeoSpatialMap";
 import GpsStatusWidget from "../components/dashboard/GpsStatusWidget";
 
+
 const DashboardPage = () => {
 	return (
 		<div className='flex-1 overflow-auto relative z-10 bg-gray-900'>
