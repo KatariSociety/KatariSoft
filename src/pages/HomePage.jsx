@@ -70,7 +70,7 @@ const HomePage = () => {
                                 </div>
                             </motion.div>
                             <motion.img
-                                src={import.meta.env.BASE_URL + 'images/katari_society.jpeg'}
+                                src={import.meta.env.BASE_URL + 'images/katari.jpg'}
                                 alt='Katari Society'
                                 className='w-full lg:w-96 h-64 lg:h-80 object-cover rounded-2xl shadow-2xl border border-gray-700/50'
                                 initial={{ opacity: 0, x: 50 }}
