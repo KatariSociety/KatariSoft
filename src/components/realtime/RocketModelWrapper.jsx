@@ -4,12 +4,20 @@ import { Environment, OrbitControls } from "@react-three/drei";
 import RocketModel from "./RocketModel";
 import TrajectoryView3D from "./TrajectoryView3D";
 
-const RocketModelWrapper = ({ testMode }) => {
+const RocketModelWrapper = ({ testMode, onViewModeChange }) => {
   const [viewMode, setViewMode] = useState("3d"); // "3d" o "trajectory"
+
+  // Notificar cambios de vista al componente padre
+  const handleViewModeChange = (newMode) => {
+    setViewMode(newMode);
+    if (onViewModeChange) {
+      onViewModeChange(newMode);
+    }
+  };
 
   // Si estamos en modo trajectory, mostramos esa vista completa
   if (viewMode === "trajectory") {
-    return <TrajectoryView3D testMode={testMode} onBack={() => setViewMode("3d")} />;
+    return <TrajectoryView3D testMode={testMode} onBack={() => handleViewModeChange("3d")} />;
   }
 
   // Si estamos en modo 3D, mostramos el Canvas con el modelo
@@ -23,7 +31,7 @@ const RocketModelWrapper = ({ testMode }) => {
         zIndex: 1000,
       }}>
         <button
-          onClick={() => setViewMode("trajectory")}
+          onClick={() => handleViewModeChange("trajectory")}
           style={{
             padding: "12px 24px",
             background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",

@@ -28,6 +28,7 @@ const RealTimePage = () => {
     const { handleStart, handleStop } = useTimer();
     const { data, startGeneratingData, stopGeneratingData, activeMode } = useSensorsData();
     const [isSimulating, setIsSimulating] = useState(false);
+    const [rocketViewMode, setRocketViewMode] = useState("3d"); // Estado para controlar vista del cohete
 
     // Función para obtener datos de sensores con valores por defecto
     const getSensorData = (sensorPath, defaultValue = 0) => {
@@ -475,20 +476,78 @@ const RealTimePage = () => {
                             {/* Reemplazo de SimulationCanSat: dos canvases separados para Cohete y CanSat */}
                             <div className='w-full h-full flex flex-col gap-2'>
                                 <div className="w-full bg-black rounded-lg overflow-hidden relative" style={{ height: '52%' }}>
-                                    <div style={{ position: 'absolute', left: 12, top: 12, zIndex: 40, pointerEvents: 'none' }}>
-                                        <div style={{ background: 'rgba(0,0,0,0.5)', color: '#fff', padding: '6px 10px', borderRadius: 8, fontSize: 12, minWidth: 140, boxShadow: '0 4px 10px rgba(0,0,0,0.4)' }}>
-                                            <div style={{ fontWeight: 800, marginBottom: 4 }}>🚀 Cohete</div>
-                                            <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>Altitud</span><strong>{Number(data?.sensors?.BMP280?.readings?.altitude?.value) || 0} m</strong></div>
+                                    {/* Panel de información - solo visible en modo 3D */}
+                                    {rocketViewMode === "3d" && (
+                                        <div style={{ position: 'absolute', left: 12, top: 12, zIndex: 40, pointerEvents: 'none' }}>
+                                            <div style={{ background: 'rgba(0,0,0,0.5)', color: '#fff', padding: '6px 10px', borderRadius: 8, fontSize: 12, minWidth: 160, boxShadow: '0 4px 10px rgba(0,0,0,0.4)' }}>
+                                                <div style={{ fontWeight: 800, marginBottom: 6, fontSize: 13 }}>🚀 Cohete</div>
+                                                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 3 }}>
+                                                    <span>Altitud</span>
+                                                    <strong>{safeToFixed(Number(data?.sensors?.BMP280?.readings?.altitude?.value) || 0, 1)} m</strong>
+                                                </div>
+                                                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 3 }}>
+                                                    <span>Velocidad</span>
+                                                    <strong style={{ color: '#00ff88' }}>
+                                                        {(() => {
+                                                            const accelX = Number(data?.sensors?.MPU9250?.readings?.accelerometer?.x?.value) || 0;
+                                                            const accelY = Number(data?.sensors?.MPU9250?.readings?.accelerometer?.y?.value) || 0;
+                                                            const accelZ = Number(data?.sensors?.MPU9250?.readings?.accelerometer?.z?.value) || 0;
+                                                            const velocity = Math.sqrt(accelX * accelX + accelY * accelY + accelZ * accelZ) * 3.5;
+                                                            return safeToFixed(velocity, 1);
+                                                        })()} m/s
+                                                    </strong>
+                                                </div>
+                                                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                                    <span>Ángulo</span>
+                                                    <strong style={{ color: '#ffaa00' }}>
+                                                        {(() => {
+                                                            const gyroX = Number(data?.sensors?.MPU9250?.readings?.gyroscope?.x?.value) || 0;
+                                                            const gyroY = Number(data?.sensors?.MPU9250?.readings?.gyroscope?.y?.value) || 0;
+                                                            const angle = Math.sqrt(gyroX * gyroX + gyroY * gyroY) * 50;
+                                                            return safeToFixed(angle, 1);
+                                                        })()}°
+                                                    </strong>
+                                                </div>
+                                            </div>
                                         </div>
-                                    </div>
-                                    <RocketModelWrapper testMode={activeMode === 'unitTest' ? 'unitTest' : null} />
+                                    )}
+                                    <RocketModelWrapper 
+                                        testMode={activeMode === 'unitTest' ? 'unitTest' : null} 
+                                        onViewModeChange={setRocketViewMode}
+                                    />
                                 </div>
 
                                 <div className="w-full bg-black rounded-lg overflow-hidden relative" style={{ height: '48%' }}>
                                     <div style={{ position: 'absolute', left: 12, top: 12, zIndex: 40, pointerEvents: 'none' }}>
-                                        <div style={{ background: 'rgba(0,0,0,0.5)', color: '#fff', padding: '6px 10px', borderRadius: 8, fontSize: 12, minWidth: 140, boxShadow: '0 4px 10px rgba(0,0,0,0.4)' }}>
-                                            <div style={{ fontWeight: 800, marginBottom: 4 }}>🛰️ CanSat</div>
-                                            <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>Altitud</span><strong>{Number(data?.sensors?.BMP280?.readings?.altitude?.value) || 0} m</strong></div>
+                                        <div style={{ background: 'rgba(0,0,0,0.5)', color: '#fff', padding: '6px 10px', borderRadius: 8, fontSize: 12, minWidth: 160, boxShadow: '0 4px 10px rgba(0,0,0,0.4)' }}>
+                                            <div style={{ fontWeight: 800, marginBottom: 6, fontSize: 13 }}>🛰️ CanSat</div>
+                                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 3 }}>
+                                                <span>Altitud</span>
+                                                <strong>{safeToFixed(Number(data?.sensors?.BMP280?.readings?.altitude?.value) || 0, 1)} m</strong>
+                                            </div>
+                                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 3 }}>
+                                                <span>Velocidad</span>
+                                                <strong style={{ color: '#00ff88' }}>
+                                                    {(() => {
+                                                        const accelX = Number(data?.sensors?.MPU9250?.readings?.accelerometer?.x?.value) || 0;
+                                                        const accelY = Number(data?.sensors?.MPU9250?.readings?.accelerometer?.y?.value) || 0;
+                                                        const accelZ = Number(data?.sensors?.MPU9250?.readings?.accelerometer?.z?.value) || 0;
+                                                        const velocity = Math.sqrt(accelX * accelX + accelY * accelY + accelZ * accelZ) * 3.5;
+                                                        return safeToFixed(velocity, 1);
+                                                    })()} m/s
+                                                </strong>
+                                            </div>
+                                            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                                <span>Ángulo</span>
+                                                <strong style={{ color: '#ffaa00' }}>
+                                                    {(() => {
+                                                        const gyroX = Number(data?.sensors?.MPU9250?.readings?.gyroscope?.x?.value) || 0;
+                                                        const gyroY = Number(data?.sensors?.MPU9250?.readings?.gyroscope?.y?.value) || 0;
+                                                        const angle = Math.sqrt(gyroX * gyroX + gyroY * gyroY) * 50;
+                                                        return safeToFixed(angle, 1);
+                                                    })()}°
+                                                </strong>
+                                            </div>
                                         </div>
                                     </div>
                                     <Canvas dpr={[1, 1]} camera={{ position: [-1.2, -2.5, 4], fov: 40 }} className="w-full h-full">
