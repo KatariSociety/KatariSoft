@@ -5,19 +5,35 @@ import * as THREE from "three";
 import { useSensorsData } from "../../context/SensorsData";
 
 // Componente para controlar la cámara dinámicamente
-const DynamicCamera = ({ currentHeight }) => {
+const DynamicCamera = ({ currentHeight, currentPhase }) => {
   const { camera } = useThree();
   const targetPositionRef = useRef(new THREE.Vector3());
 
   useFrame(() => {
-    // Calcular la distancia de la cámara basada en la altura
-    // A mayor altura, más lejos debe estar la cámara
-    const baseDistance = 30;
-    const heightFactor = Math.max(1, currentHeight / 20); // Escala basada en altura
-    const distance = baseDistance * heightFactor;
+    // Calcular la distancia de la cámara basada en la altura y fase
+    let baseDistance = 30;
+    let heightFactor = Math.max(1, currentHeight / 20); // Escala basada en altura
+    let distance;
     
-    // Ángulo de elevación que aumenta con la altura
-    const elevationAngle = Math.min(25 + (currentHeight / 5), 45);
+    // En fase de descenso con paracaídas (fase 2), acercar la cámara significativamente
+    if (currentPhase === 2) {
+      baseDistance = 15; // Distancia base mucho menor para paracaídas
+      heightFactor = Math.max(1, currentHeight / 30); // Factor más suave
+      distance = baseDistance * heightFactor;
+    } else {
+      // Fases de ascenso (0) y apogeo (1)
+      distance = baseDistance * heightFactor;
+    }
+    
+    // Ángulo de elevación que varía según la fase
+    let elevationAngle;
+    if (currentPhase === 2) {
+      // En descenso: ángulo más horizontal para mejor vista del paracaídas
+      elevationAngle = Math.min(15 + (currentHeight / 8), 30);
+    } else {
+      // En ascenso y apogeo: ángulo estándar
+      elevationAngle = Math.min(25 + (currentHeight / 5), 45);
+    }
     const angleRad = THREE.MathUtils.degToRad(elevationAngle);
     
     // Calcular posición de la cámara
@@ -27,8 +43,10 @@ const DynamicCamera = ({ currentHeight }) => {
     const z = distance * Math.cos(angleRad) * Math.sin(azimuthAngle);
     
     // Suavizar el movimiento de la cámara
+    // Mayor suavidad durante el descenso para mostrar mejor el paracaídas
+    const smoothness = currentPhase === 2 ? 0.03 : 0.05;
     targetPositionRef.current.set(x, y, z);
-    camera.position.lerp(targetPositionRef.current, 0.05);
+    camera.position.lerp(targetPositionRef.current, smoothness);
     
     // Hacer que la cámara mire al cohete
     const lookAtTarget = new THREE.Vector3(0, currentHeight / 2, 0);
@@ -36,7 +54,7 @@ const DynamicCamera = ({ currentHeight }) => {
     camera.getWorldDirection(currentLookAt);
     currentLookAt.multiplyScalar(camera.position.distanceTo(lookAtTarget));
     currentLookAt.add(camera.position);
-    currentLookAt.lerp(lookAtTarget, 0.05);
+    currentLookAt.lerp(lookAtTarget, smoothness);
     camera.lookAt(currentLookAt);
   });
 
@@ -44,7 +62,7 @@ const DynamicCamera = ({ currentHeight }) => {
 };
 
 // Componente para mostrar la trayectoria del cohete
-const RocketTrajectory = ({ testMode, onHeightChange }) => {
+const RocketTrajectory = ({ testMode, onHeightChange, onPhaseChange }) => {
   const { data, activeMode } = useSensorsData();
   const [trajectory, setTrajectory] = useState([]);
   const [currentPosition, setCurrentPosition] = useState([0, 0, 0]);
@@ -104,9 +122,12 @@ const RocketTrajectory = ({ testMode, onHeightChange }) => {
       const newPosition = [x, y, z];
       setCurrentPosition(newPosition);
       
-      // Notificar cambio de altura al componente padre
+      // Notificar cambios al componente padre
       if (onHeightChange) {
         onHeightChange(y);
+      }
+      if (onPhaseChange) {
+        onPhaseChange(phaseRef.current);
       }
       
       // Agregar punto a la trayectoria cada 0.1 segundos
@@ -305,6 +326,7 @@ const LaunchPad = () => {
 
 const TrajectoryView3D = ({ testMode, onBack }) => {
   const [currentHeight, setCurrentHeight] = useState(0);
+  const [currentPhase, setCurrentPhase] = useState(0);
 
   return (
     <div style={{ width: "100%", height: "100%", background: "#0a0a1a", position: "relative" }}>
@@ -356,7 +378,7 @@ const TrajectoryView3D = ({ testMode, onBack }) => {
         <pointLight position={[-10, 10, -5]} intensity={0.5} />
         
         {/* Cámara dinámica que sigue al cohete */}
-        <DynamicCamera currentHeight={currentHeight} />
+        <DynamicCamera currentHeight={currentHeight} currentPhase={currentPhase} />
         
         {/* Controles de órbita - deshabilitados cuando la cámara dinámica está activa */}
         <OrbitControls 
@@ -388,7 +410,11 @@ const TrajectoryView3D = ({ testMode, onBack }) => {
         <LaunchPad />
         
         {/* Trayectoria del cohete */}
-        <RocketTrajectory testMode={testMode} onHeightChange={setCurrentHeight} />
+        <RocketTrajectory 
+          testMode={testMode} 
+          onHeightChange={setCurrentHeight} 
+          onPhaseChange={setCurrentPhase}
+        />
       </Canvas>
       
       {/* Leyenda */}
@@ -414,8 +440,19 @@ const TrajectoryView3D = ({ testMode, onBack }) => {
           <span style={{ color: "#00aaff" }}>●</span> Fase de Descenso
         </div>
         <div style={{ marginTop: "10px", fontSize: "12px", color: "#aaa" }}>
-          <div>� Cámara automática activa</div>
-          <div style={{ color: "#00ff88" }}>Altura actual: {currentHeight.toFixed(1)}m</div>
+          <div>📹 Cámara automática activa</div>
+          <div style={{ color: "#00ff88" }}>Altura: {currentHeight.toFixed(1)}m</div>
+          <div style={{ 
+            color: currentPhase === 0 ? "#ffaa00" : currentPhase === 1 ? "#ff0000" : "#00aaff",
+            fontWeight: "bold"
+          }}>
+            {currentPhase === 0 ? "⬆️ ASCENSO" : currentPhase === 1 ? "🔴 APOGEO" : "🪂 PARACAÍDAS"}
+          </div>
+          {currentPhase === 2 && (
+            <div style={{ color: "#00aaff", fontSize: "11px", marginTop: "3px" }}>
+              Zoom cercano activo
+            </div>
+          )}
         </div>
       </div>
     </div>
