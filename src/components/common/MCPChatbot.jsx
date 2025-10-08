@@ -129,16 +129,40 @@ const MCPChatbot = () => {
 
     return (
         <>
-            {/* Botón flotante */}
-            <motion.button
-                onClick={() => setIsOpen(!isOpen)}
-                className="fixed bottom-6 right-6 z-50 bg-gradient-to-r from-blue-600 to-purple-600 text-white p-4 rounded-full shadow-2xl hover:shadow-blue-500/50 transition-all duration-300"
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.9 }}
-                title="Abrir Chatbot MCP"
-            >
-                {isOpen ? <X size={28} /> : <MessageCircle size={28} />}
-            </motion.button>
+            {/* Botón flotante mejorado */}
+            <div className="fixed bottom-6 right-6 z-50 flex items-center">
+                <div className='relative'>
+                    {/* anillo pulsante decorativo */}
+                    <motion.span
+                        aria-hidden
+                        className='absolute inset-0 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 opacity-30 blur-xl'
+                        animate={{ scale: [1, 1.2, 1] }}
+                        transition={{ duration: 2.6, repeat: Infinity, ease: 'easeInOut' }}
+                    />
+
+                    <motion.button
+                        onClick={() => setIsOpen(!isOpen)}
+                        className="relative flex items-center justify-center w-20 h-20 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-full shadow-2xl hover:shadow-2xl hover:scale-105 transform-gpu transition-all duration-300 border border-white/10"
+                        whileHover={{ scale: 1.08 }}
+                        whileTap={{ scale: 0.95 }}
+                        title="Abrir Chatbot MCP"
+                        aria-pressed={isOpen}
+                        aria-label="Abrir chat"
+                    >
+                        <span className='sr-only'>Abrir chat</span>
+                        {isOpen ? <X size={28} /> : <Bot size={32} />}
+
+                        {/* indicador AI (sin texto) */}
+                        <motion.span
+                            aria-hidden
+                            initial={{ scale: 0.95, opacity: 0.95 }}
+                            animate={{ scale: [0.95, 1.3, 0.95], opacity: [0.95, 1, 0.95] }}
+                            transition={{ duration: 1.6, repeat: Infinity, ease: 'easeInOut' }}
+                            className='absolute -top-1 -right-1 w-5 h-5 bg-cyan-400 rounded-full border-2 border-white/90 shadow-md'
+                        />
+                    </motion.button>
+                </div>
+            </div>
 
             {/* Ventana del chat */}
             <AnimatePresence>
@@ -151,8 +175,8 @@ const MCPChatbot = () => {
                     >
                         {/* Header */}
                         <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-4 flex items-center justify-between">
-                            <div className="flex items-center gap-2">
-                                <Bot className="text-white" size={24} />
+                                    <div className="flex items-center gap-2">
+                                <Bot className="text-white" size={28} />
                                 <div>
                                     <h3 className="text-white font-bold">Katari AI Assistant</h3>
                                     <p className="text-xs text-blue-100 flex items-center gap-1">
@@ -183,7 +207,7 @@ const MCPChatbot = () => {
                         <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-800">
                             {messages.length === 0 && (
                                 <div className="text-center text-gray-400 mt-8">
-                                    <Bot size={48} className="mx-auto mb-4 text-blue-500" />
+                                    <Bot size={64} className="mx-auto mb-4 text-blue-500" />
                                     <p className="mb-4">¡Hola! Soy tu asistente de IA.</p>
                                     <p className="text-sm mb-4">Puedo ayudarte a consultar la base de datos de telemetría de Katari.</p>
                                     

@@ -27,103 +27,129 @@ const HomePage = () => {
         }
     };
 
+    const bannerTextVariants = {
+        hidden: { opacity: 0, y: 18 },
+        visible: (i = 0) => ({
+            opacity: 1,
+            y: 0,
+            transition: { duration: 0.9, delay: i * 0.15, ease: 'easeOut' }
+        })
+    };
+
     return (
         <div className='flex-1 overflow-auto relative z-10'>
             <Header title='Katari Society' />
 
-            <main className='max-w-7xl mx-auto py-6 px-4 lg:px-8'>
-                {/* Hero Section */}
-                <motion.div
-                    className='relative mb-16 overflow-hidden rounded-3xl'
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ duration: 0.8 }}
-                >
-                    <div className='absolute inset-0 bg-gradient-to-r from-blue-600/20 via-purple-600/20 to-pink-600/20 backdrop-blur-sm'></div>
-                    <div className='relative bg-gradient-to-br from-gray-800/80 to-gray-900/80 backdrop-blur-md border border-gray-700/50 rounded-3xl p-8 lg:p-12'>
-                        <div className='flex flex-col lg:flex-row items-center gap-8'>
-                            <motion.div
-                                className='flex-1 space-y-4'
-                                initial={{ opacity: 0, x: -50 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                transition={{ duration: 0.8, delay: 0.2 }}
-                            >
-                                <div className='flex items-center gap-3 mb-4'>
-                                    <Rocket className='w-10 h-10 text-blue-500' />
-                                    <h1 className='text-4xl lg:text-5xl font-bold bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent'>
-                                        Katari Society
-                                    </h1>
-                                </div>
-                                <p className='text-lg text-gray-300 leading-relaxed'>
-                                    Explorando el espacio, innovando desde Latinoamérica
-                                </p>
-                                <div className='flex flex-wrap gap-3 pt-4'>
-                                    <span className='px-4 py-2 bg-blue-500/20 border border-blue-500/50 rounded-full text-blue-400 text-sm font-medium'>
-                                        🚀 Cohetería Experimental
-                                    </span>
-                                    <span className='px-4 py-2 bg-purple-500/20 border border-purple-500/50 rounded-full text-purple-400 text-sm font-medium'>
-                                        🛰️ CanSat
-                                    </span>
-                                    <span className='px-4 py-2 bg-green-500/20 border border-green-500/50 rounded-full text-green-400 text-sm font-medium'>
-                                        📡 Telemetría
-                                    </span>
-                                </div>
+            {/* Full-bleed banner (se extiende de borde a borde) */}
+            <motion.section
+                className='relative w-screen left-1/2 right-1/2 -translate-x-1/2 mb-10 overflow-hidden'
+                initial='hidden'
+                animate='visible'
+            >
+                {/* Fondo con imagen de Katari */}
+                <motion.img
+                    src={import.meta.env.BASE_URL + 'images/katari.jpg'}
+                    alt='Katari Society banner'
+                    className='absolute inset-0 w-full h-full object-cover object-[center_40%]'
+                    initial={{ scale: 1.02 }}
+                    animate={{ scale: 1 }}
+                    transition={{ duration: 20, repeat: Infinity, repeatType: 'mirror', ease: 'linear' }}
+                    loading='lazy'
+                />
+
+                {/* Overlay para mejorar contraste */}
+                <div className='absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/10 pointer-events-none'></div>
+
+                {/* Estrellas sutiles (puntos) */}
+                <div className='absolute inset-0 pointer-events-none'>
+                    <svg className='w-full h-full opacity-40' viewBox='0 0 1200 300' preserveAspectRatio='none'>
+                        <g fill='white' opacity='0.06'>
+                            <circle cx='60' cy='40' r='1.6' />
+                            <circle cx='180' cy='20' r='1.2' />
+                            <circle cx='260' cy='80' r='1.4' />
+                            <circle cx='420' cy='30' r='1.1' />
+                            <circle cx='760' cy='60' r='1.8' />
+                            <circle cx='980' cy='45' r='1.3' />
+                        </g>
+                    </svg>
+                </div>
+
+                {/* Orbes decorativas animadas */}
+                <motion.div className='absolute -top-16 left-8 w-56 h-56 rounded-full bg-purple-400/30 blur-3xl mix-blend-screen' animate={{ y: [0, -18, 0] }} transition={{ duration: 8, repeat: Infinity, repeatType: 'mirror', ease: 'easeInOut' }} />
+                <motion.div className='absolute -bottom-20 right-12 w-48 h-48 rounded-full bg-cyan-400/25 blur-2xl mix-blend-screen' animate={{ y: [0, 12, 0] }} transition={{ duration: 9, repeat: Infinity, repeatType: 'mirror', ease: 'easeInOut' }} />
+
+                <div className='relative w-full'>
+                    <div className='w-full h-80 md:h-96 lg:h-[560px] flex items-center justify-center'>
+                        <div className='max-w-4xl px-6 text-center'>
+                            <motion.h1 custom={0} variants={bannerTextVariants} className='text-4xl md:text-5xl lg:text-6xl font-extrabold leading-tight text-white drop-shadow-xl'>
+                                <span className='bg-clip-text text-transparent bg-gradient-to-r from-sky-200 via-cyan-100 to-blue-100'>Katari Society</span>
+                            </motion.h1>
+
+                            <motion.p custom={1} variants={bannerTextVariants} className='mt-4 text-lg md:text-xl text-gray-100/90 max-w-3xl mx-auto'>Explorando el espacio, innovando desde Latinoamérica.</motion.p>
+
+                            <motion.div custom={2} variants={bannerTextVariants} className='mt-6 flex items-center justify-center gap-3'>
+                                <span className='text-xs md:text-sm text-white/90 bg-black/25 px-3 py-1 rounded-full backdrop-blur-sm border border-white/10'>Estudiantes · Investigación · Cohetería</span>
                             </motion.div>
-                            <motion.img
-                                src={import.meta.env.BASE_URL + 'images/katari.jpg'}
-                                alt='Katari Society'
-                                className='w-full lg:w-96 h-64 lg:h-80 object-cover rounded-2xl shadow-2xl border border-gray-700/50'
-                                initial={{ opacity: 0, x: 50 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                transition={{ duration: 0.8, delay: 0.3 }}
-                                whileHover={{ scale: 1.05 }}
-                            />
                         </div>
                     </div>
-                </motion.div>
+                </div>
 
-                {/* About Section */}
-                <motion.div
-                    className='bg-gradient-to-br from-gray-800/60 to-gray-900/60 backdrop-blur-md border border-gray-700/50 rounded-3xl p-8 lg:p-10 mb-12'
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.6, delay: 0.4 }}
-                >
-                    <div className='flex items-center gap-3 mb-6'>
-                        <Target className='w-8 h-8 text-blue-500' />
-                        <h2 className='text-3xl font-bold text-white'>Nuestra Misión</h2>
+                <div className='w-full overflow-hidden leading-none mt-2'>
+                    <svg className='w-full h-8 md:h-12' viewBox='0 0 1200 120' preserveAspectRatio='none'>
+                        <path d='M0,0 C300,100 900,0 1200,80 L1200,120 L0,120 Z' fill='rgba(15,23,42,0.9)' />
+                    </svg>
+                </div>
+            </motion.section>
+
+            <main className='px-6 pb-12 max-w-7xl mx-auto'>
+
+            {/* About Section (Nuestra Misión) ahora con imagen a la derecha */}
+            <motion.div
+                className='bg-gradient-to-br from-gray-800/60 to-gray-900/60 backdrop-blur-md border border-gray-700/50 rounded-3xl p-6 lg:p-10 mb-12'
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.2 }}
+            >
+                <div className='flex flex-col lg:flex-row items-center gap-8'>
+                    <div className='flex-1'>
+                        <div className='flex items-center gap-3 mb-6'>
+                            <Target className='w-8 h-8 text-blue-500' />
+                            <h2 className='text-3xl font-bold text-white'>Nuestra Misión</h2>
+                        </div>
+                        <p className='text-gray-300 text-lg leading-relaxed text-justify'>
+                            Katari Society es un grupo de investigación dedicado a la exploración y desarrollo de tecnologías aeroespaciales. Conformado por estudiantes y egresados de diversas disciplinas de la Universidad del Cauca, Katari Society tiene como objetivo principal fomentar la investigación en ciencia y tecnología espacial a través de proyectos innovadores. Entre sus iniciativas se encuentra la participación en la competencia{' '}
+                            <a
+                                href='https://www.lasc.space'
+                                target='_blank'
+                                rel='noopener noreferrer'
+                                className='text-blue-400 hover:text-blue-300 font-semibold underline decoration-blue-400/50 hover:decoration-blue-300'
+                            >
+                                Latin American Space Challenge (LASC)
+                            </a>{' '}
+                            y el{' '}
+                            <a
+                                href='https://enmice.mx'
+                                target='_blank'
+                                rel='noopener noreferrer'
+                                className='text-purple-400 hover:text-purple-300 font-semibold underline decoration-purple-400/50 hover:decoration-purple-300'
+                            >
+                                Encuentro Mexicano de Ingeniería en Cohetería Experimental (ENMICE)
+                            </a>
+                            , donde el grupo se desafía a construir soluciones tecnológicas avanzadas con el objetivo de proteger los recursos naturales. Katari Society representa un proyecto para que jóvenes apasionados por el espacio puedan convertir sus ideas en proyectos reales, acercándose cada vez más al sueño de la exploración espacial.
+                        </p>
                     </div>
-                    <p className='text-gray-300 text-lg leading-relaxed text-justify'>
-                        Katari Society es un grupo de investigación dedicado a la exploración y desarrollo de tecnologías aeroespaciales. Conformado por estudiantes de diversas disciplinas de la Universidad del Cauca y la Universidad del Valle, Katari Society tiene como objetivo principal fomentar la investigación en ciencia y tecnología espacial a través de proyectos innovadores. Entre sus iniciativas se encuentra la participación en la competencia{" "}
-                        <a
-                            href="https://www.lasc.space"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-blue-400 hover:text-blue-300 font-semibold underline decoration-blue-400/50 hover:decoration-blue-300"
-                        >
-                            Latin American Space Challenge (LASC)
-                        </a>{" "}
-                        y el{" "}
-                        <a
-                            href="https://enmice.mx"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-purple-400 hover:text-purple-300 font-semibold underline decoration-purple-400/50 hover:decoration-purple-300"
-                        >
-                            Encuentro Mexicano de Ingeniería en Cohetería Experimental (ENMICE)
-                        </a>
-                        , donde el grupo se desafía a construir soluciones tecnológicas avanzadas con el objetivo de proteger los recursos naturales. Katari Society representa un proyecto para que jóvenes apasionados por el espacio puedan convertir sus ideas en proyectos reales, acercándose cada vez más al sueño de la exploración espacial.
-                    </p>
-                </motion.div>
+                    {/* Imagen eliminada para evitar duplicado; la foto principal permanece en el banner */}
+                </div>
+            </motion.div>
 
-                {/* Projects Section */}
+                
                 <motion.div
                     className='space-y-8'
                     variants={containerVariants}
                     initial="hidden"
                     animate="visible"
                 >
-                    {/* Amaru Card */}
+                    
                     <motion.div
                         variants={itemVariants}
                         whileHover={{ scale: 1.02 }}
@@ -174,15 +200,16 @@ const HomePage = () => {
                                 >
                                     <img
                                         src={import.meta.env.BASE_URL + 'images/amaru.png'}
-                                        alt='Amaru'
-                                        className='w-full h-96 object-cover'
+                                        alt='Amaru - Cohete experimental Katari'
+                                        className='w-full h-64 md:h-80 lg:h-96 object-contain object-center rounded-2xl shadow-2xl'
+                                        loading='lazy'
                                     />
                                 </motion.div>
                             </div>
                         </div>
                     </motion.div>
 
-                    {/* Tapirus Card */}
+                    
                     <motion.div
                         variants={itemVariants}
                         whileHover={{ scale: 1.02 }}
@@ -200,8 +227,9 @@ const HomePage = () => {
                                 >
                                     <img
                                         src={import.meta.env.BASE_URL + 'images/tapirus.png'}
-                                        alt='Tapirus'
-                                        className='w-full h-96 object-cover'
+                                        alt='Tapirus - CanSat de Katari'
+                                        className='w-full h-64 md:h-80 lg:h-96 object-contain object-center rounded-2xl shadow-2xl'
+                                        loading='lazy'
                                     />
                                 </motion.div>
                                 <motion.div
@@ -242,7 +270,7 @@ const HomePage = () => {
                     </motion.div>
                 </motion.div>
 
-                {/* Social Media Section */}
+                
                 <motion.div
                     className='mt-12 bg-gradient-to-br from-gray-800/60 to-gray-900/60 backdrop-blur-md border border-gray-700/50 rounded-3xl p-8'
                     initial={{ opacity: 0, y: 20 }}
@@ -320,7 +348,7 @@ const HomePage = () => {
                     </div>
                 </motion.div>
 
-                {/* Footer Note */}
+                
                 <motion.div
                     className='mt-8 text-center'
                     initial={{ opacity: 0 }}

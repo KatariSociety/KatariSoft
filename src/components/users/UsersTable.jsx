@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Search, Pencil, Trash2, Info } from "lucide-react";
+import { Search, Pencil, Mail } from "lucide-react";
 import Alert from '../common/Alert';
 import UserInfoModal from "./UserInfoModal";
 import usersData from '../../context/UsersData.json';
@@ -40,9 +40,12 @@ const UsersTable = () => {
 			transition={{ delay: 0.2 }}
 		>
 			<div className='flex flex-col sm:flex-row justify-between items-center mb-6 space-y-4 sm:space-y-0'>
-				<h2 className='text-xl font-semibold text-gray-100 w-full sm:w-auto text-center sm:text-left mb-4 sm:mb-0'>
-					Lista de integrantes
-				</h2>
+				<div className='flex items-center gap-3'>
+					<h2 className='text-2xl font-bold text-white'>Lista de integrantes</h2>
+					<span className='px-2 py-1 text-xs bg-white/6 text-white rounded-full'>
+						{filteredUsers.length} integrantes
+					</span>
+				</div>
 				<div className='relative w-full sm:w-auto'>
 					<input
 						type='text'
@@ -78,22 +81,27 @@ const UsersTable = () => {
 					</thead>
 
 					<tbody className='divide-y divide-gray-700'>
-						{filteredUsers.map((user) => (
-							<motion.tr
-								key={user.id}
-								initial={{ opacity: 0 }}
-								animate={{ opacity: 1 }}
-								transition={{ duration: 0.3 }}
-							>
+							{filteredUsers.map((user) => {
+								const isSelected = selectedUser && selectedUser.id === user.id && showInfoModal;
+								return (
+									<motion.tr
+										key={user.id}
+										initial={{ opacity: 0 }}
+										animate={{ opacity: 1 }}
+										transition={{ duration: 0.3 }}
+										onClick={() => handleShowInfo(user)}
+										className={`cursor-pointer hover:bg-white/3 ${isSelected ? 'bg-white/5 ring-1 ring-white/10' : ''}`}
+									>
 								<td className='px-6 py-4 whitespace-nowrap'>
 									<div className='flex items-center'>
-										<div className='flex-shrink-0 h-10 w-10'>
-											<div className='h-10 w-10 rounded-full bg-gradient-to-r from-purple-400 to-blue-500 flex items-center justify-center text-white font-semibold'>
+										<div className='flex-shrink-0 h-12 w-12'>
+											<div className='h-12 w-12 rounded-full bg-gradient-to-r from-purple-500 to-indigo-500 flex items-center justify-center text-white font-semibold text-lg shadow'>
 												{user.name.charAt(0)}
 											</div>
 										</div>
 										<div className='ml-4'>
-											<div className='text-sm font-medium text-gray-100'>{user.name}</div>
+											<div className='text-sm font-semibold text-gray-100'>{user.name}</div>
+											<div className='text-xs text-gray-400'>{user.role}</div>
 										</div>
 									</div>
 								</td>
@@ -102,36 +110,38 @@ const UsersTable = () => {
 									<div className='text-sm text-gray-300'>{user.email}</div>
 								</td>
 								<td className='px-6 py-4 whitespace-nowrap'>
-									<span className='px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-800 text-blue-100'>
+									<span className='px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white'>
 										{user.role}
 									</span>
 								</td>
 
 								<td className='px-6 py-4 whitespace-nowrap'>
-									<span
-										className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-											user.status === "Active"
-												? "bg-green-800 text-green-100"
-												: "bg-red-800 text-red-100"
-										}`}
-									>
-										{user.status}
+									<span className='inline-flex items-center gap-2'>
+										<span className={`w-3 h-3 rounded-full ${user.status === 'Active' ? 'bg-green-400' : 'bg-red-400'}`} />
+										<span className='text-xs text-gray-300 font-semibold'>{user.status}</span>
 									</span>
 								</td>
 
 								<td className='px-6 py-4 whitespace-nowrap text-sm text-gray-300'>
-									<button className='text-indigo-400 hover:text-indigo-300 mr-2' onClick={() => setShowAlert(true)}>
+									<button className='text-indigo-400 hover:text-indigo-300 mr-2' onClick={(e) => { e.stopPropagation(); setShowAlert(true); }}>
 										<Pencil size={20} />
 									</button>
-									<button className='text-red-400 hover:text-red-300 mr-2' onClick={() => setShowAlert(true)}>
-										<Trash2 size={20} />
-									</button>
-									<button className='text-blue-400 hover:text-blue-300' onClick={() => handleShowInfo(user)}>
-										<Info size={20} />
+									{/* botón Borrar eliminado */}
+									<button
+										className='text-cyan-400 hover:text-cyan-300'
+										onClick={(e) => { 
+											e.stopPropagation();
+											const subject = encodeURIComponent('Contacto desde Katari');
+											const body = encodeURIComponent(`Hola ${user.name},%0D%0A%0D%0A`);
+											window.location.href = `mailto:${user.email}?subject=${subject}&body=${body}`;
+										}}
+										aria-label={`Enviar correo a ${user.email}`}
+									>
+										<Mail size={20} />
 									</button>
 								</td>
 							</motion.tr>
-						))}
+						)})}
 					</tbody>
 				</table>
 			</div>
