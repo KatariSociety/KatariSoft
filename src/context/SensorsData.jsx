@@ -692,9 +692,10 @@ export const SensorsDataProvider = ({ children }) => {
             const climbDuration = 10; // segundos para llegar a 1 km
             const climbTarget = 1000; // metros
             const climbRate = climbTarget / climbDuration; // m/s (100)
-            const newAltitude = Math.min(climbTarget, (s.altStart || 0) + climbRate * elapsedSinceStart);
+            // NO limitar: permitir que la altitud continúe subiendo después de 1 km
+            const newAltitude = (s.altStart || 0) + climbRate * elapsedSinceStart;
 
-            // marcar llegada si se alcanza 1 km
+            // marcar llegada si se cruza 1 km (solo un aviso, no detener)
             if (newAltitude >= climbTarget && !arrivalAlert) {
                 setArrivalAlert(true);
             }
@@ -879,8 +880,9 @@ export const SensorsDataProvider = ({ children }) => {
         stopGeneratingData,
         startRealTimeMode,
         isArduinoConnected,
-        activeMode
-    }), [data, isArduinoConnected, activeMode]);
+        activeMode,
+        arrivalAlert
+    }), [data, isArduinoConnected, activeMode, arrivalAlert]);
 
     return (
         <SensorsDataContext.Provider value={contextValue}>

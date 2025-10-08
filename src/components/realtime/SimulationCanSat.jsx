@@ -202,6 +202,7 @@ const RocketModel = ({ testMode }) => {
 const Scene = ({ testMode }) => {
   const ctx = useSensorsData();
   const { activeMode } = ctx;
+  const { arrivalAlert } = ctx;
 
   // Valores generales
   const altitude = Number(ctx.data?.sensors?.BMP280?.readings?.altitude?.value) || 0;
@@ -269,6 +270,14 @@ const Scene = ({ testMode }) => {
 
   return (
     <div className="w-full h-full flex flex-col gap-2" style={{ height: '100%' }}>
+      {/* Aviso de llegada a 1 km */}
+      {arrivalAlert && (
+        <div style={{ position: 'absolute', left: '50%', transform: 'translateX(-50%)', top: 8, zIndex: 60, pointerEvents: 'none' }}>
+          <div style={{ background: 'rgba(255,215,0,0.95)', color: '#000', padding: '8px 14px', borderRadius: 8, fontWeight: 800, boxShadow: '0 6px 14px rgba(0,0,0,0.2)' }}>
+            🚨 Llegada: 1 km alcanzado
+          </div>
+        </div>
+      )}
   {/* Canvas superior: Cohete (52%) */}
   <div className="w-full bg-black rounded-lg overflow-hidden" style={{ height: '52%' }}>
         {/* Overlay discreto para el cohete */}
