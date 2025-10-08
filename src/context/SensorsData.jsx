@@ -630,7 +630,13 @@ export const SensorsDataProvider = ({ children }) => {
     // Modificada para usar datos reales del MPU en modo unitTest
     const startGeneratingData = (mode = false) => {
         console.log("🔄 Iniciando generación de datos, modo:", mode);
-        
+    // Antes de comenzar, reiniciamos solo la altitud y los flags relacionados
+    setCurrentAltitude(0);
+    setArrivalAlert(false);
+    // Resetear posición simulada del GPS a la base (útil para simulación)
+    lastLat = GPS_BASE_LAT;
+    lastLon = GPS_BASE_LON;
+
         if (intervalRef.current) {
             clearInterval(intervalRef.current);
             intervalRef.current = null;
@@ -862,11 +868,8 @@ export const SensorsDataProvider = ({ children }) => {
         setActiveMode(null);
         setUseRealMPU(false);
         setUseSimulation(false);
-        setData(initialData); // Reiniciar los datos a cero
+        // Reiniciar únicamente la altitud al detener; mantener el resto de KPIs
         setCurrentAltitude(0);
-    // Resetear posición simulada del GPS a la base
-    lastLat = GPS_BASE_LAT;
-    lastLon = GPS_BASE_LON;
         console.log("⏹️ Detenida generación de datos");
     };
 

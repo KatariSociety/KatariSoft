@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import Header from "../components/common/Header";
+// Header removed from Home page (handled globally in layout)
 import { Instagram, Youtube, Rocket, Satellite, Target, Zap } from "lucide-react";
 import { SiTiktok } from "react-icons/si";
 import { FaDonate } from "react-icons/fa";
@@ -132,7 +132,7 @@ const HomePage = () => {
 
     return (
         <div className='flex-1 overflow-auto relative z-10'>
-            <Header title='Katari Society' />
+            {/* Header oculto en la página principal */}
 
             {/* Full-bleed banner (se extiende de borde a borde) */}
             <motion.section

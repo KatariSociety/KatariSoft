@@ -10,7 +10,10 @@ import Actions from "../components/realtime/Actions";
 import DangerZone from "../components/realtime/DangerZone";
 import { useTimer } from "../context/TimerContext";
 import { useSensorsData } from "../context/SensorsData";
-import SimulationCanSat from "../components/realtime/SimulationCanSat";
+import CanSatModel from "../components/realtime/CanSatModel";
+import RocketModel from "../components/realtime/RocketModel";
+import { Environment, OrbitControls } from "@react-three/drei";
+import { Canvas } from "@react-three/fiber";
 import GPSModal from "../components/realtime/GPSModal";
 
 // Función auxiliar para manejar toFixed de manera segura
@@ -469,7 +472,42 @@ const RealTimePage = () => {
                             animate={{ x: 0, opacity: 1 }}
                             transition={{ duration: 0.5, ease: 'easeOut' }}
                         >
-                            <SimulationCanSat testMode={activeMode === 'unitTest' ? 'unitTest' : null} />
+                            {/* Reemplazo de SimulationCanSat: dos canvases separados para Cohete y CanSat */}
+                            <div className='w-full h-full flex flex-col gap-2'>
+                                <div className="w-full bg-black rounded-lg overflow-hidden" style={{ height: '52%' }}>
+                                    <div style={{ position: 'absolute', left: 12, top: 12, zIndex: 40, pointerEvents: 'none' }}>
+                                        <div style={{ background: 'rgba(0,0,0,0.5)', color: '#fff', padding: '6px 10px', borderRadius: 8, fontSize: 12, minWidth: 140, boxShadow: '0 4px 10px rgba(0,0,0,0.4)' }}>
+                                            <div style={{ fontWeight: 800, marginBottom: 4 }}>🚀 Cohete</div>
+                                            <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>Altitud</span><strong>{Number(data?.sensors?.BMP280?.readings?.altitude?.value) || 0} m</strong></div>
+                                        </div>
+                                    </div>
+                                    <Canvas dpr={[1, 1]} camera={{ position: [-2.5, -4, 6], fov: 40 }} className="w-full h-full">
+                                        <Environment files={import.meta.env.BASE_URL + "images/sky.hdr"} background />
+                                        <ambientLight intensity={0.5} />
+                                        <directionalLight position={[5, 8, 5]} intensity={1} />
+                                        <RocketModel testMode={activeMode === 'unitTest' ? 'unitTest' : null} />
+                                        <axesHelper args={[8]} position={[0,-0.9,0]} />
+                                        <OrbitControls target={[0, 0, 0]} minDistance={4} maxDistance={30} enablePan={false} />
+                                    </Canvas>
+                                </div>
+
+                                <div className="w-full bg-black rounded-lg overflow-hidden relative" style={{ height: '48%' }}>
+                                    <div style={{ position: 'absolute', left: 12, top: 12, zIndex: 40, pointerEvents: 'none' }}>
+                                        <div style={{ background: 'rgba(0,0,0,0.5)', color: '#fff', padding: '6px 10px', borderRadius: 8, fontSize: 12, minWidth: 140, boxShadow: '0 4px 10px rgba(0,0,0,0.4)' }}>
+                                            <div style={{ fontWeight: 800, marginBottom: 4 }}>🛰️ CanSat</div>
+                                            <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>Altitud</span><strong>{Number(data?.sensors?.BMP280?.readings?.altitude?.value) || 0} m</strong></div>
+                                        </div>
+                                    </div>
+                                    <Canvas dpr={[1, 1]} camera={{ position: [-1.2, -2.5, 4], fov: 40 }} className="w-full h-full">
+                                        <Environment files={import.meta.env.BASE_URL + "images/sky.hdr"} background />
+                                        <ambientLight intensity={0.6} />
+                                        <directionalLight position={[5, 5, 5]} intensity={0.8} />
+                                        <CanSatModel testMode={activeMode === 'unitTest' ? 'unitTest' : null} />
+                                        <axesHelper args={[3.2]} position={[0,-0.15,0]} />
+                                        <OrbitControls target={[0, 0, 0]} minDistance={2.5} maxDistance={16} enablePan={false} />
+                                    </Canvas>
+                                </div>
+                            </div>
                         </motion.div>
                     </div>
                 </div>
