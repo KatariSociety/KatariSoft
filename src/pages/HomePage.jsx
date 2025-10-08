@@ -3,6 +3,100 @@ import Header from "../components/common/Header";
 import { Instagram, Youtube, Rocket, Satellite, Target, Zap } from "lucide-react";
 import { SiTiktok } from "react-icons/si";
 import { FaDonate } from "react-icons/fa";
+import { useEffect, useState, useRef } from 'react';
+
+// RocketInstance: un cohete individual que atraviesa el banner dejando pequeñas estrellitas
+const RocketInstance = ({ top = 40, delay = 0, duration = 6, drift = 18, scale = 1 }) => {
+    const stars = Array.from({ length: 6 });
+    // trayectoria diagonal coherente: desde abajo-izquierda hacia arriba-derecha
+    const startX = '-35vw';
+    const endX = '120vw';
+    const startY = `${Math.min(95, top + 30)}vh`; // empieza más abajo
+    const endY = `${Math.max(2, top - Math.abs(drift) - 20)}vh`; // termina más arriba
+
+    // offsets para la pequeña órbita circular relativa al cohete
+    const orbit = {
+        x: [0, 6, 12, 6, 0, -6, -12, -6, 0],
+        y: [0, -6, 0, 6, 12, 6, 0, -6, 0]
+    };
+
+    // usar transform con translate(...) para asegurar interpolación diagonal en vw/vh
+    const startTransform = `translate(${startX}, ${startY}) scale(${scale})`;
+    const endTransform = `translate(${endX}, ${endY}) scale(${scale})`;
+
+    return (
+        <motion.div
+            // empezar visible inmediatamente
+            initial={{ transform: startTransform, opacity: 1 }}
+            animate={{ transform: [startTransform, endTransform], opacity: [1, 1, 0] }}
+            transition={{ delay, duration, ease: 'linear', repeat: Infinity, repeatType: 'loop' }}
+            style={{ position: 'absolute', left: 0, top: 0, pointerEvents: 'none' }}
+        >
+            <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                {/* cohete con pequeño giro en forma de órbita (animación relativa) */}
+                <motion.div style={{ width: 56, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 20 }}>
+                    <motion.div
+                            animate={{ x: orbit.x, y: orbit.y }}
+                            // órbita más lenta para que el giro sea sutil
+                            transition={{ duration: Math.max(3.0, duration / 2), repeat: Infinity, ease: 'easeInOut' }}
+                        style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                    >
+                        <Rocket size={26} className='drop-shadow-lg' style={{ color: '#C6A8FF' }} />
+                    </motion.div>
+                </motion.div>
+
+                {/* trail: estrellitas que quedan detrás del cohete (izquierda/abajo) */}
+                <div style={{ position: 'absolute', left: -12, top: '50%', transform: 'translateY(-50%)', display: 'flex', gap: 8, zIndex: 10 }}>
+                    {stars.map((_, i) => (
+                        <motion.span
+                            key={i}
+                            // empezar visibles para no demorar su aparición
+                            initial={{ opacity: 1, x: 0, y: 0, scale: 0.6 }}
+                            // las estrellitas se desplazan hacia la izquierda y ligeramente hacia abajo (quedan atrás)
+                            animate={{ opacity: [1, 0], x: [0, -80 - i * 30], y: [0, 40 + i * 10], scale: [1, 0.2] }}
+                                transition={{ duration: 2.8 + i * 0.5, delay: Math.max(0, delay) + 0.02 + i * 0.02, repeat: Infinity, repeatType: 'loop', ease: 'easeOut' }}
+                            style={{
+                                display: 'block',
+                                width: 6,
+                                height: 6,
+                                borderRadius: 6,
+                                background: 'white',
+                                boxShadow: '0 0 8px rgba(255,255,255,0.95)'
+                            }}
+                        />
+                    ))}
+                </div>
+            </div>
+        </motion.div>
+    );
+};
+
+// RocketSpawner: genera múltiples cohetes con variaciones para dar efecto de muchos "coheticos"
+const RocketSpawner = ({ count = 7 }) => {
+    const [items, setItems] = useState([]);
+    useEffect(() => {
+        const arr = Array.from({ length: count }).map((_, i) => ({
+            id: i,
+            top: 8 + Math.random() * 70, // porcentaje de altura dentro del banner
+                // aparecer casi inmediatamente: delay muy pequeño, con un stagger leve
+                delay: Math.random() * 0.3 + i * 0.15,
+            // más lentos: duraciones entre ~12s y ~20s
+                duration: 18 + Math.random() * 12,
+            drift: -6 + Math.random() * 12,
+            // cohetes más grandes: escala base entre 1.0 y 1.6
+            scale: 1.0 + Math.random() * 0.6
+        }));
+        setItems(arr);
+    }, [count]);
+
+    return (
+        <>
+            {items.map((r) => (
+                <RocketInstance key={r.id} top={r.top} delay={r.delay} duration={r.duration} drift={r.drift} scale={r.scale} />
+            ))}
+        </>
+    );
+};
 
 const HomePage = () => {
     const containerVariants = {
@@ -21,7 +115,7 @@ const HomePage = () => {
             opacity: 1,
             y: 0,
             transition: {
-                duration: 0.6,
+            // RocketSpawner: mantiene una cola y asegura que no haya más de 3 cohetes visibles al mismo tiempo.
                 ease: "easeOut"
             }
         }
@@ -60,6 +154,11 @@ const HomePage = () => {
                 {/* Overlay para mejorar contraste */}
                 <div className='absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/10 pointer-events-none'></div>
 
+                {/* Cohetes animados con estela de estrellitas que atraviesan todo el banner */}
+                <div className='absolute inset-0 pointer-events-none'>
+                    <RocketSpawner count={8} />
+                </div>
+
                 {/* Estrellas sutiles (puntos) */}
                 <div className='absolute inset-0 pointer-events-none'>
                     <svg className='w-full h-full opacity-40' viewBox='0 0 1200 300' preserveAspectRatio='none'>
@@ -88,7 +187,7 @@ const HomePage = () => {
                             <motion.p custom={1} variants={bannerTextVariants} className='mt-4 text-lg md:text-xl text-gray-100/90 max-w-3xl mx-auto'>Explorando el espacio, innovando desde Latinoamérica.</motion.p>
 
                             <motion.div custom={2} variants={bannerTextVariants} className='mt-6 flex items-center justify-center gap-3'>
-                                <span className='text-xs md:text-sm text-white/90 bg-black/25 px-3 py-1 rounded-full backdrop-blur-sm border border-white/10'>Estudiantes · Investigación · Cohetería</span>
+                                <span className='text-xs md:text-sm text-white/90 bg-black/25 px-3 py-1 rounded-full backdrop-blur-sm border border-white/10'>Cohetería · Satélites · Aeroospace</span>
                             </motion.div>
                         </div>
                     </div>

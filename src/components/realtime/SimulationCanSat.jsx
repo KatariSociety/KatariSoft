@@ -1,251 +1,316 @@
 import { Canvas, useFrame } from "@react-three/fiber";
-import { OrbitControls, useGLTF, Environment, Html } from "@react-three/drei";
+import { OrbitControls, Environment, useGLTF } from "@react-three/drei";
 import { useRef, useState, useEffect } from "react";
 import * as THREE from "three";
 import { useSensorsData } from "../../context/SensorsData";
 
-// Aceptar prop testMode para indicar si estamos en prueba unitaria
-const RocketModel = ({ testMode }) => {
-  const { data, activeMode } = useSensorsData();  
-  const { scene } = useGLTF(import.meta.env.BASE_URL + "images/rocket.glb");
-  const rocketRef = useRef();
-  const [angle, setAngle] = useState(0);
-  const [predictedPath, setPredictedPath] = useState([]);
+// Modelo simple de CanSat: cuerpo central + paneles solares
+const CanSatModel = ({ testMode }) => {
+  const { data, activeMode } = useSensorsData();
+  const groupRef = useRef();
+  const [predictedOrbit, setPredictedOrbit] = useState([]);
+  const [incAngle, setIncAngle] = useState(0);
+  const incAngleRef = useRef(0);
+  const targetPosRef = useRef(new THREE.Vector3());
 
-  // Usar datos del contexto directamente - el contexto ya maneja la conexión
+  // Lecturas relevantes
   const gyroX = Number(data?.sensors?.MPU9250?.readings?.gyroscope?.x?.value) || 0;
   const gyroY = Number(data?.sensors?.MPU9250?.readings?.gyroscope?.y?.value) || 0;
   const gyroZ = Number(data?.sensors?.MPU9250?.readings?.gyroscope?.z?.value) || 0;
-  const currentAltitude = Number(data?.sensors?.BMP280?.readings?.altitude?.value) || 0;
-  
-  // Datos del acelerómetro del contexto
   const accelX = Number(data?.sensors?.MPU9250?.readings?.accelerometer?.x?.value) || 0;
   const accelY = Number(data?.sensors?.MPU9250?.readings?.accelerometer?.y?.value) || 0;
   const accelZ = Number(data?.sensors?.MPU9250?.readings?.accelerometer?.z?.value) || 0;
+  const altitude = Number(data?.sensors?.BMP280?.readings?.altitude?.value) || 0;
 
-  // Función para predecir trayectoria balística
-  const calculatePredictedPath = () => {
-    const timeSteps = 30; // Predicción para 3 segundos (30 frames a 10fps)
-    const timeStep = 0.1; // 100ms por paso
-    
-    const path = [];
-    let currentX = 0;
-    let currentY = 0;
-    let currentZ = 0;
-    let currentVX = accelX * 9.81; // Convertir aceleración a velocidad (m/s)
-    let currentVY = accelY * 9.81;
-    let currentVZ = accelZ * 9.81;
-    
-    for (let i = 0; i < timeSteps; i++) {
-      path.push({
-        x: currentX,
-        y: currentY,
-        z: currentZ,
-        time: i * timeStep
-      });
-      
-      // Actualizar posición usando ecuaciones de movimiento
-      currentX += currentVX * timeStep;
-      currentY += currentVY * timeStep;
-      currentZ += currentVZ * timeStep;
-      
-      // Aplicar gravedad y resistencia del aire
-      currentVY -= 9.81 * timeStep; // Gravedad
-      currentVX *= 0.99; // Resistencia del aire (simplificado)
-      currentVZ *= 0.99;
+  // Convertir altitud a un radio de órbita visual
+  const orbitRadius = 2 + Math.min(Math.max(altitude / 200, 0), 6); // escala visual
+
+  // Calcular una órbita circular predicha (usamos velocidad estimada por aceleración)
+  const calculatePredictedOrbit = () => {
+    // Ahora generamos un aro muy pequeño alrededor del CanSat
+    const smallRadius = 0.35; // radio visual pequeño
+    const points = [];
+    const segments = 24; // menos segmentos, más discreto
+    for (let i = 0; i < segments; i++) {
+      const theta = (i / segments) * Math.PI * 2;
+      const x = Math.cos(theta) * smallRadius;
+      const y = Math.sin(theta) * (smallRadius * 0.12); // ligera inclinación menor
+      const z = Math.sin(theta) * smallRadius;
+      points.push([x, y, z]);
     }
-    
-    return path;
+    return points;
   };
 
-  // Registro para debug cuando los valores cambian - mejorado
   useEffect(() => {
-    if (testMode === 'unitTest' || activeMode === 'unitTest') {
-      console.log(`� SIMULATIONCANSAT - Datos IMU recibidos:`, {
-        accel: { x: accelX.toFixed(3), y: accelY.toFixed(3), z: accelZ.toFixed(3) },
-        gyro: { x: gyroX.toFixed(2), y: gyroY.toFixed(2), z: gyroZ.toFixed(2) },
-        mode: { testMode, activeMode }
-      });
-    }
-  }, [accelX, accelY, accelZ, gyroX, gyroY, gyroZ, testMode, activeMode]);
+    setPredictedOrbit(calculatePredictedOrbit());
+  }, [orbitRadius]);
 
-  // Actualizar trayectoria predicha cuando cambien los datos de aceleración
-  useEffect(() => {
-    const newPath = calculatePredictedPath();
-    setPredictedPath(newPath);
-  }, [accelX, accelY, accelZ]);
+  // Animación: rotación basada en giroscopio o en modo simulación
+  useFrame((state, delta) => {
+    if (!groupRef.current) return;
+    // actualizar incAngleRef (no setState por frame)
+    incAngleRef.current = incAngleRef.current + delta * 0.5;
+    const angle = incAngleRef.current;
+    const isUnitTest = testMode === 'unitTest' || activeMode === 'unitTest';
+    const isSim = activeMode === 'simulation' || testMode === 'simulation';
 
-  useFrame(() => {
-    if (rocketRef.current) {
-      if (testMode === 'unitTest' || activeMode === 'unitTest') {
-        // MODO PRUEBA UNITARIA: Usar acelerómetro para inclinación real
-        
-        // Calcular ángulos de inclinación a partir del acelerómetro
-        // Esta fórmula convierte lecturas de acelerómetro a ángulos de inclinación
-        const accelXg = accelX;  // Se asume que viene en unidades g
-        const accelYg = accelY;
-        const accelZg = accelZ;
-        
-        // Solo aplicar rotación si tenemos datos válidos del acelerómetro
-        if (Math.abs(accelXg) > 0.01 || Math.abs(accelYg) > 0.01 || Math.abs(accelZg) > 0.01) {
-          // Calcular ángulos usando arcotangente (atan2) - CORREGIDO para sensor invertido
-          // Invertir completamente la orientación cambiando los signos de los datos
-          const invertedAccelX = -accelXg;
-          const invertedAccelY = -accelYg;
-          const invertedAccelZ = -accelZg;
-          
-          // Para rotación en X (pitch) - alrededor del eje X
-          const pitchRad = Math.atan2(invertedAccelY, Math.sqrt(invertedAccelX * invertedAccelX + invertedAccelZ * invertedAccelZ));
-          // Para rotación en Z (roll) - alrededor del eje Z
-          const rollRad = Math.atan2(-invertedAccelX, invertedAccelZ);
-          
-          // Aplicar directamente al modelo
-          rocketRef.current.rotation.x = pitchRad;
-          rocketRef.current.rotation.z = rollRad;
-          
-          // Convertir a grados para mostrar
-          const pitchDeg = pitchRad * (180 / Math.PI);
-          const rollDeg = rollRad * (180 / Math.PI);
-          
-          // Calcular ángulo total de inclinación
-          const inclinationAngle = Math.sqrt(pitchDeg * pitchDeg + rollDeg * rollDeg);
-          setAngle(inclinationAngle.toFixed(2));
-          
-          // Mostrar valores por consola para debug (reducir frecuencia)
-          if (Math.random() < 0.1) { // Solo 10% de las veces para no saturar console
-            console.log(`📐 Sensor invertido - Original: X:${accelXg.toFixed(2)} Y:${accelYg.toFixed(2)} Z:${accelZg.toFixed(2)}`);
-            console.log(`📐 Invertido: X:${invertedAccelX.toFixed(2)} Y:${invertedAccelY.toFixed(2)} Z:${invertedAccelZ.toFixed(2)}`);
-            console.log(`📐 Ángulos - Pitch: ${pitchDeg.toFixed(2)}°, Roll: ${rollDeg.toFixed(2)}°, Total: ${inclinationAngle.toFixed(2)}°`);
-          }
-        }
-      } else {
-        // MODO SIMULACIÓN: Con restricciones de ángulos (sin cambios)
-        const thetaX = THREE.MathUtils.degToRad(Math.min(Math.max(gyroX, -10), 10));
-        const thetaZ = THREE.MathUtils.degToRad(Math.min(Math.max(gyroZ, -10), 10));
-        
-        const smoothingFactor = 0.1;
-        
-        rocketRef.current.rotation.x = THREE.MathUtils.lerp(
-          rocketRef.current.rotation.x, thetaX, smoothingFactor
-        );
-        rocketRef.current.rotation.z = THREE.MathUtils.lerp(
-          rocketRef.current.rotation.z, thetaZ, smoothingFactor
-        );
-        
-        const inclinationAngle = Math.sqrt(thetaX ** 2 + thetaZ ** 2) * (180 / Math.PI);
-        setAngle(inclinationAngle.toFixed(2));
-      }
-      
-      // Mantener posición en origen
-      rocketRef.current.position.set(0, 0, 0);
+    if (isUnitTest) {
+      // Orientación a partir del acelerómetro (más estable para saber inclinación)
+      const iAx = -accelX;
+      const iAy = -accelY;
+      const iAz = -accelZ || 1;
+      const pitch = Math.atan2(iAy, Math.sqrt(iAx * iAx + iAz * iAz));
+      const roll = Math.atan2(-iAx, iAz);
+      groupRef.current.rotation.x = THREE.MathUtils.lerp(groupRef.current.rotation.x, pitch, 0.2);
+      groupRef.current.rotation.z = THREE.MathUtils.lerp(groupRef.current.rotation.z, roll, 0.2);
+      const inclination = Math.sqrt((pitch * 180 / Math.PI) ** 2 + (roll * 180 / Math.PI) ** 2);
+      // no llamamos setIncAngle por frame; sincronizamos periódicamente
+      incAngleRef.current = inclination;
+    } else if (isSim) {
+      // Modo simulación: limitar los ángulos a ±10° antes de aplicar
+  const maxDeg = 10;
+  const scale = 10; // escala para amplificar lecturas pequeñas del giroscopio
+  const clampedDegX = Math.min(Math.max((gyroX || 0) * scale, -maxDeg), maxDeg);
+  const clampedDegY = Math.min(Math.max((gyroY || 0) * scale, -maxDeg), maxDeg);
+  const clampedDegZ = Math.min(Math.max((gyroZ || 0) * scale, -maxDeg), maxDeg);
+      const smoothing = 0.12;
+      const targetX = THREE.MathUtils.degToRad(clampedDegX);
+      const targetY = THREE.MathUtils.degToRad(clampedDegY);
+      const targetZ = THREE.MathUtils.degToRad(clampedDegZ);
+      groupRef.current.rotation.x = THREE.MathUtils.lerp(groupRef.current.rotation.x, targetX, smoothing);
+      groupRef.current.rotation.y = THREE.MathUtils.lerp(groupRef.current.rotation.y, targetY, smoothing);
+      groupRef.current.rotation.z = THREE.MathUtils.lerp(groupRef.current.rotation.z, targetZ, smoothing);
+
+      // Mantener centrado con pequeña oscilación usando targetPosRef
+      const radius = 0.35;
+      targetPosRef.current.set(Math.cos(angle) * radius, 0, Math.sin(angle) * radius);
+      groupRef.current.position.lerp(targetPosRef.current, 0.05);
+
+      // Calcular inclinación aproximada en grados para display
+      const inclination = Math.sqrt((targetX * 180 / Math.PI) ** 2 + (targetZ * 180 / Math.PI) ** 2);
+      incAngleRef.current = inclination;
+    } else {
+      // Modo normal (fallback): mantener orientación suave
+      groupRef.current.rotation.x = THREE.MathUtils.lerp(groupRef.current.rotation.x, 0, 0.02);
+      groupRef.current.rotation.y = THREE.MathUtils.lerp(groupRef.current.rotation.y, 0, 0.02);
+      groupRef.current.rotation.z = THREE.MathUtils.lerp(groupRef.current.rotation.z, 0, 0.02);
+      // pequeñas oscilaciones centradas
+      const radius = 0.05;
+      targetPosRef.current.set(Math.cos(angle) * radius, 0, Math.sin(angle) * radius);
+      groupRef.current.position.lerp(targetPosRef.current, 0.02);
     }
   });
 
+  // sincronizar el state incAngle cada 200ms para que otras partes que dependan del state se actualicen ocasionalmente
+  useEffect(() => {
+    const id = setInterval(() => {
+      setIncAngle(Number(incAngleRef.current).toFixed(2));
+    }, 200);
+    return () => clearInterval(id);
+  }, []);
+
+  // Componente visual del satélite
   return (
-    <group>
-      <primitive ref={rocketRef} object={scene} scale={1.5} />
-      
-      {/* Trayectoria predicha */}
-      {predictedPath.length > 0 && (
-        <group>
-          {/* Línea punteada para la trayectoria */}
-          <line>
-            <bufferGeometry>
-              <bufferAttribute
-                attach="attributes-position"
-                count={predictedPath.length}
-                array={new Float32Array(predictedPath.flatMap(point => [point.x, point.y, point.z]))}
-                itemSize={3}
-              />
-            </bufferGeometry>
-            <lineBasicMaterial color="#00ff00" linewidth={2} transparent opacity={0.6} />
-          </line>
-          
-          {/* Puntos semitransparentes en la trayectoria */}
-          {predictedPath.map((point, index) => (
-            <mesh key={index} position={[point.x, point.y, point.z]}>
-              <sphereGeometry args={[0.05, 8, 6]} />
-              <meshBasicMaterial color="#00ff00" transparent opacity={0.3} />
-            </mesh>
-          ))}
-        </group>
+    <group ref={groupRef}>
+      {/* Cuerpo cilíndrico simple para el CanSat (más alto, tipo lata de refresco) */}
+      <mesh position={[0, 0, 0]}>
+        <cylinderGeometry args={[0.28, 0.28, 1.2, 32]} />
+        <meshStandardMaterial color="#b0bec5" metalness={0.5} roughness={0.4} />
+      </mesh>
+
+
+      {/* Trayectoria predicha (línea) */}
+      {predictedOrbit.length > 1 && (
+        <line>
+          <bufferGeometry>
+            <bufferAttribute
+              attach="attributes-position"
+              count={predictedOrbit.length}
+              array={new Float32Array(predictedOrbit.flat())}
+              itemSize={3}
+            />
+          </bufferGeometry>
+          {/* Aro muy pequeño y más sutil */}
+          <lineBasicMaterial color="#60a5fa" transparent opacity={0.25} />
+        </line>
       )}
-      
-  {/* Info 3D removida; ahora la UI overlay se renderiza en 2D (Scene) para no tapar el cohete */}
+
     </group>
   );
 };
 
-// Componente para visualizar los ejes X, Y, Z
-const Axes = () => {
-  return <axesHelper args={[5]} />;
+// Modelo del cohete (usa rocket.glb)
+const RocketModel = ({ testMode }) => {
+  const { data, activeMode } = useSensorsData();
+  const { scene } = useGLTF(import.meta.env.BASE_URL + "images/rocket.glb");
+  const rocketRef = useRef();
+  const groupRef = useRef();
+  const angleRef = useRef(0);
+  const posRef = useRef(new THREE.Vector3());
+
+  const gyroX = Number(data?.sensors?.MPU9250?.readings?.gyroscope?.x?.value) || 0;
+  const gyroY = Number(data?.sensors?.MPU9250?.readings?.gyroscope?.y?.value) || 0;
+  const gyroZ = Number(data?.sensors?.MPU9250?.readings?.gyroscope?.z?.value) || 0;
+  const accelX = Number(data?.sensors?.MPU9250?.readings?.accelerometer?.x?.value) || 0;
+  const accelY = Number(data?.sensors?.MPU9250?.readings?.accelerometer?.y?.value) || 0;
+  const accelZ = Number(data?.sensors?.MPU9250?.readings?.accelerometer?.z?.value) || 0;
+
+  useFrame((_, delta) => {
+  if (!groupRef.current) return;
+    angleRef.current += delta * 0.5;
+    const angle = angleRef.current;
+    const isUnitTest = testMode === 'unitTest' || activeMode === 'unitTest';
+    const isSim = activeMode === 'simulation' || testMode === 'simulation';
+
+    if (isUnitTest) {
+      const rotX = Math.atan2(accelY, accelZ || 1);
+      const rotY = Math.atan2(accelX, accelZ || 1);
+  groupRef.current.rotation.x = THREE.MathUtils.lerp(groupRef.current.rotation.x, rotX, 0.1);
+  groupRef.current.rotation.y = THREE.MathUtils.lerp(groupRef.current.rotation.y, rotY, 0.1);
+    } else if (isSim) {
+      // Modo simulación: limitar ángulos a ±10° y aplicar suavizado (coherente con CanSat)
+  const maxDeg = 10;
+  const scale = 10; // escala para amplificar lecturas pequeñas del giroscopio
+  const clampedDegX = Math.min(Math.max((gyroX || 0) * scale, -maxDeg), maxDeg);
+  const clampedDegY = Math.min(Math.max((gyroY || 0) * scale, -maxDeg), maxDeg);
+  const clampedDegZ = Math.min(Math.max((gyroZ || 0) * scale, -maxDeg), maxDeg);
+      const targetX = THREE.MathUtils.degToRad(clampedDegX);
+      const targetY = THREE.MathUtils.degToRad(clampedDegY);
+      const targetZ = THREE.MathUtils.degToRad(clampedDegZ);
+      const smoothing = 0.08;
+  groupRef.current.rotation.x = THREE.MathUtils.lerp(groupRef.current.rotation.x, targetX, smoothing);
+  groupRef.current.rotation.y = THREE.MathUtils.lerp(groupRef.current.rotation.y, targetY, smoothing);
+  groupRef.current.rotation.z = THREE.MathUtils.lerp(groupRef.current.rotation.z, targetZ, smoothing);
+      // pequeña oscilación visual
+      const radius = 0.12;
+      posRef.current.set(Math.cos(angle) * radius, Math.sin(angle * 0.7) * 0.04, Math.sin(angle) * radius);
+  groupRef.current.position.lerp(posRef.current, 0.04);
+    } else {
+  groupRef.current.rotation.x = THREE.MathUtils.lerp(groupRef.current.rotation.x, 0, 0.02);
+  groupRef.current.rotation.y = THREE.MathUtils.lerp(groupRef.current.rotation.y, 0, 0.02);
+  groupRef.current.rotation.z = THREE.MathUtils.lerp(groupRef.current.rotation.z, 0, 0.02);
+    }
+  });
+
+  return (
+    <group ref={groupRef}>
+      <primitive ref={rocketRef} object={scene} scale={1.2} position={[0, 0, 0]} />
+    </group>
+  );
 };
 
 const Scene = ({ testMode }) => {
-  // Obtener el contexto una sola vez (evita llamar hooks condicionalmente)
-  const ctxData = useSensorsData();
-  const { activeMode } = ctxData;
-  // Envolver el Canvas en un contenedor con la mitad de la altura actual.
-  // Usamos un estilo inline para garantizar que ocupe el 50% de la altura del contenedor padre.
+  const ctx = useSensorsData();
+  const { activeMode } = ctx;
+
+  // Valores generales
+  const altitude = Number(ctx.data?.sensors?.BMP280?.readings?.altitude?.value) || 0;
+  const gyroX = Number(ctx.data?.sensors?.MPU9250?.readings?.gyroscope?.x?.value) || 0;
+  const gyroY = Number(ctx.data?.sensors?.MPU9250?.readings?.gyroscope?.y?.value) || 0;
+  const gyroZ = Number(ctx.data?.sensors?.MPU9250?.readings?.gyroscope?.z?.value) || 0;
+  const accelX = Number(ctx.data?.sensors?.MPU9250?.readings?.accelerometer?.x?.value) || 0;
+  const accelY = Number(ctx.data?.sensors?.MPU9250?.readings?.accelerometer?.y?.value) || 0;
+  const accelZ = Number(ctx.data?.sensors?.MPU9250?.readings?.accelerometer?.z?.value) || 0;
+
+  const computeInclination = (mode) => {
+    const isUnit = mode === 'unitTest' || activeMode === 'unitTest';
+    const isSim = activeMode === 'simulation' || mode === 'simulation';
+    if (isUnit) {
+      const iAx = -accelX;
+      const iAy = -accelY;
+      const iAz = -accelZ || 1;
+      const pitch = Math.atan2(iAy, Math.sqrt(iAx * iAx + iAz * iAz));
+      const roll = Math.atan2(-iAx, iAz);
+      const inclination = Math.sqrt((pitch * 180 / Math.PI) ** 2 + (roll * 180 / Math.PI) ** 2);
+      return Number(inclination).toFixed(2);
+    }
+    if (isSim) {
+      // usar giroscopio (grados) como aproximación de ángulo objetivo, pero clamp a ±10°
+  const maxDeg = 10;
+  const scale = 10; // mismo factor de escala para display
+  const clampedDegX = Math.min(Math.max((gyroX || 0) * scale, -maxDeg), maxDeg);
+  const clampedDegZ = Math.min(Math.max((gyroZ || 0) * scale, -maxDeg), maxDeg);
+      const inclination = Math.sqrt((clampedDegX) ** 2 + (clampedDegZ) ** 2);
+      return Number(inclination).toFixed(2);
+    }
+    return (0).toFixed(2);
+  };
+
+  const rocketIncl = computeInclination(testMode);
+  const cansatIncl = computeInclination(testMode);
+
+  const TelemetryOverlay = () => {
+    const accelX = Number(ctx.data?.sensors?.MPU9250?.readings?.accelerometer?.x?.value) || 0;
+    const accelY = Number(ctx.data?.sensors?.MPU9250?.readings?.accelerometer?.y?.value) || 0;
+    const accelZ = Number(ctx.data?.sensors?.MPU9250?.readings?.accelerometer?.z?.value) || 0;
+    const altitude = Number(ctx.data?.sensors?.BMP280?.readings?.altitude?.value) || 0;
+    const velocity = Math.sqrt(accelX * accelX + accelY * accelY + accelZ * accelZ).toFixed(2);
+
+    const iAx = -accelX;
+    const iAy = -accelY;
+    const iAz = -accelZ || 1;
+    const pitch = Math.atan2(iAy, Math.sqrt(iAx * iAx + iAz * iAz));
+    const roll = Math.atan2(-iAx, iAz);
+    const inclination = Math.sqrt((pitch * 180 / Math.PI) ** 2 + (roll * 180 / Math.PI) ** 2).toFixed(2);
+
+    if (!(testMode === 'unitTest' || activeMode === 'unitTest')) return null;
+
+    return (
+      <div style={{ position: 'absolute', top: 12, right: 12, zIndex: 10, pointerEvents: 'none' }}>
+        <div style={{ background: '#7c3aed', color: '#fff', padding: '10px 14px', borderRadius: 8, minWidth: 220, boxShadow: '0 6px 12px rgba(0,0,0,0.18)', pointerEvents: 'auto' }}>
+          <div style={{ fontWeight: 800, marginBottom: 6 }}>🛰️ MODO PRUEBA UNITARIA</div>
+          <div style={{ fontSize: 14, fontWeight: 700 }}>Inclinación: {inclination}°</div>
+          <div style={{ fontSize: 13, marginTop: 6 }}>Altura: {altitude} m</div>
+          <div style={{ fontSize: 13, marginTop: 4 }}>Velocidad sens.: {velocity} m/s²</div>
+        </div>
+      </div>
+    );
+  };
+
   return (
-    <div style={{ width: '100%', height: '50%' }} className="relative">
-
-      {/* Recuadro 2D en esquina superior derecha con info de la prueba unitaria */}
-      {(testMode === 'unitTest' || activeMode === 'unitTest') && (() => {
-        // Calcular inclinación y velocidad desde los datos del contexto (ctxData ya disponible)
-        const accelX_ctx = Number(ctxData.data?.sensors?.MPU9250?.readings?.accelerometer?.x?.value) || 0;
-        const accelY_ctx = Number(ctxData.data?.sensors?.MPU9250?.readings?.accelerometer?.y?.value) || 0;
-        const accelZ_ctx = Number(ctxData.data?.sensors?.MPU9250?.readings?.accelerometer?.z?.value) || 0;
-        const altitude_ctx = Number(ctxData.data?.sensors?.BMP280?.readings?.altitude?.value) || 0;
-
-        // Aplicar la misma inversión que usamos en el modelo
-        const iAx = -accelX_ctx;
-        const iAy = -accelY_ctx;
-        const iAz = -accelZ_ctx;
-        const pitch = Math.atan2(iAy, Math.sqrt(iAx * iAx + iAz * iAz));
-        const roll = Math.atan2(-iAx, iAz);
-        const pitchDeg = pitch * (180 / Math.PI);
-        const rollDeg = roll * (180 / Math.PI);
-        const inclination = Math.sqrt(pitchDeg * pitchDeg + rollDeg * rollDeg).toFixed(2);
-        const velocity = Math.sqrt(accelX_ctx * accelX_ctx + accelY_ctx * accelY_ctx + accelZ_ctx * accelZ_ctx).toFixed(2);
-
-        return (
-          <div style={{ position: 'absolute', top: 12, right: 12, zIndex: 50 }}>
-            <div style={{ background: '#10B981', color: '#fff', padding: '10px 14px', borderRadius: 8, minWidth: 200, boxShadow: '0 6px 12px rgba(0,0,0,0.18)' }}>
-              <div style={{ fontWeight: 800, marginBottom: 6 }}>🧪 MODO PRUEBA UNITARIA</div>
-              <div style={{ fontSize: 14, fontWeight: 700 }}>Inclinación: {inclination}°</div>
-              <div style={{ fontSize: 13, marginTop: 6 }}>Altura: {altitude_ctx} m</div>
-              <div style={{ fontSize: 13, marginTop: 4 }}>Velocidad: {velocity} m/s²</div>
-            </div>
+    <div className="w-full h-full flex flex-col gap-2" style={{ height: '100%' }}>
+  {/* Canvas superior: Cohete (52%) */}
+  <div className="w-full bg-black rounded-lg overflow-hidden" style={{ height: '52%' }}>
+        {/* Overlay discreto para el cohete */}
+        <div style={{ position: 'absolute', left: 12, top: 12, zIndex: 40, pointerEvents: 'none' }}>
+          <div style={{ background: 'rgba(0,0,0,0.5)', color: '#fff', padding: '6px 10px', borderRadius: 8, fontSize: 12, minWidth: 140, boxShadow: '0 4px 10px rgba(0,0,0,0.4)' }}>
+            <div style={{ fontWeight: 800, marginBottom: 4 }}>🚀 Cohete</div>
+            <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>Altitud</span><strong>{altitude} m</strong></div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 4 }}><span>Ángulo</span><strong>{rocketIncl}°</strong></div>
           </div>
-        );
-      })()}
+        </div>
+        <Canvas dpr={[1, 1]} camera={{ position: [0, 5, 12], fov: 50 }} className="w-full h-full">
+          <Environment files={import.meta.env.BASE_URL + "images/sky.hdr"} background />
+          <ambientLight intensity={0.5} />
+          <directionalLight position={[5, 8, 5]} intensity={1} />
+          <RocketModel testMode={testMode} />
+          {/* Ejes estáticos de referencia (no rotan con el cohete) */}
+          <axesHelper args={[8]} position={[0,0,0]} />
+          <OrbitControls target={[0, 2, 0]} minDistance={6} maxDistance={20} enablePan={false} />
+        </Canvas>
+      </div>
 
-      <Canvas 
-        camera={{ position: [0, -7, 15], fov: 50 }}
-        className="w-full h-full"
-      >
-        {/* Fondo HDR */}
-        <Environment files={import.meta.env.BASE_URL + "images/sky.hdr"} background />
-
-        <ambientLight intensity={0.4} />
-        <directionalLight position={[5, 10, 5]} intensity={1} castShadow />
-        <pointLight position={[-5, 10, -5]} intensity={0.5} color="#CCE6FF" />
-
-        {/* Modelo del cohete con indicador de ángulo y altura */}
-        <RocketModel testMode={testMode} />
-
-        {/* Ejes X, Y, Z */}
-        <Axes />
-
-        {/* Mantener el eje 0,0,0 en la parte inferior */}
-        <OrbitControls 
-          target={[0, 3, 0]}
-          minDistance={7} 
-          maxDistance={12} 
-          enablePan={false} 
-        />
-      </Canvas>
+  {/* Canvas inferior: CanSat */}
+  <div className="w-full bg-black rounded-lg overflow-hidden relative" style={{ height: '48%' }}>
+        <TelemetryOverlay />
+        {/* Overlay discreto para el CanSat */}
+        <div style={{ position: 'absolute', left: 12, top: 12, zIndex: 40, pointerEvents: 'none' }}>
+          <div style={{ background: 'rgba(0,0,0,0.5)', color: '#fff', padding: '6px 10px', borderRadius: 8, fontSize: 12, minWidth: 140, boxShadow: '0 4px 10px rgba(0,0,0,0.4)' }}>
+            <div style={{ fontWeight: 800, marginBottom: 4 }}>🛰️ CanSat</div>
+            <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>Altitud</span><strong>{altitude} m</strong></div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 4 }}><span>Ángulo</span><strong>{cansatIncl}°</strong></div>
+          </div>
+        </div>
+        <Canvas dpr={[1, 1]} camera={{ position: [0, 3, 8], fov: 50 }} className="w-full h-full">
+          <Environment files={import.meta.env.BASE_URL + "images/sky.hdr"} background />
+          <ambientLight intensity={0.6} />
+          <directionalLight position={[5, 5, 5]} intensity={0.8} />
+          <CanSatModel testMode={testMode} />
+          {/* Ejes estáticos de referencia (no rotan con el CanSat) */}
+          <axesHelper args={[3.2]} position={[0,0,0]} />
+          <OrbitControls target={[0, 0, 0]} minDistance={3} maxDistance={20} enablePan={false} />
+        </Canvas>
+      </div>
     </div>
   );
 };

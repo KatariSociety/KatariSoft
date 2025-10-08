@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import { useState, useEffect } from "react";
+import { createPortal } from 'react-dom';
 import { useSensorsData } from "../../context/SensorsData";
 
 const Actions = ({ onStart, onStop, isSimulating }) => {
@@ -69,10 +70,10 @@ const Actions = ({ onStart, onStop, isSimulating }) => {
                 </motion.button>
             </motion.div>
 
-            {/* Modal */}
-            {isModalOpen && (
+            {/* Modal (renderizado en portal para garantizar superposición) */}
+            {isModalOpen && typeof document !== 'undefined' && createPortal(
                 <motion.div
-                    className="fixed inset-0 bg-black bg-opacity-70 flex justify-center items-center z-50"
+                    className="fixed inset-0 bg-black bg-opacity-70 flex justify-center items-center z-[9999]"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                 >
@@ -116,7 +117,8 @@ const Actions = ({ onStart, onStop, isSimulating }) => {
                             Cancelar
                         </button>
                     </motion.div>
-                </motion.div>
+                </motion.div>,
+                document.body
             )}
         </>
     );

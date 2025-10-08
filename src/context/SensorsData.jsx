@@ -20,9 +20,9 @@ const initialData = {
             sensor_id: "BMP_280_K1",
             timestamp: new Date().toISOString(),
             readings: {
-                temperature: { value: 26.5, unit: "C" },
-                pressure: { value: 829.0, unit: "hPa" },
-                altitude: { value: 1658.0, unit: "m" }
+                temperature: { value: 0.0, unit: "C" },
+                pressure: { value: 0.0, unit: "hPa" },
+                altitude: { value: 0.0, unit: "m" }
             }
         },
     NEO6M: {
@@ -30,7 +30,7 @@ const initialData = {
             timestamp: new Date().toISOString(),
             readings: {
         location: { latitude: 0, longitude: 0 },
-                speed: { value: 0, unit: "km/h" },
+                speed: { value: 0.0, unit: "km/h" },
                 satellites: 0
             }
         },
@@ -39,14 +39,14 @@ const initialData = {
             timestamp: new Date().toISOString(),
             readings: {
                 accelerometer: {
-                    x: { value: -0.015, unit: "g" },
-                    y: { value: -0.057, unit: "g" },
-                    z: { value: -0.978, unit: "g" }
+                    x: { value: 0.0, unit: "g" },
+                    y: { value: 0.0, unit: "g" },
+                    z: { value: 0.0, unit: "g" }
                 },
                 gyroscope: {
                     x: { value: 0.0, unit: "dps" },
-                    y: { value: -1.77, unit: "dps" },
-                    z: { value: -0.18, unit: "dps" }
+                    y: { value: 0.0, unit: "dps" },
+                    z: { value: 0.0, unit: "dps" }
                 }
             }
         },
@@ -54,8 +54,8 @@ const initialData = {
             sensor_id: "CCS_811_K1",
             timestamp: new Date().toISOString(),
             readings: {
-                CO2: { value: 400, unit: "ppm" },
-                TVOC: { value: 0, unit: "ppb" }
+                CO2: { value: 0.0, unit: "ppm" },
+                TVOC: { value: 0.0, unit: "ppb" }
             }
         }
         ,
@@ -63,9 +63,9 @@ const initialData = {
             sensor_id: "SCD_40_K1",
             timestamp: new Date().toISOString(),
             readings: {
-                temperature: { value: 24.0, unit: "C" },
-                CO2: { value: 2663, unit: "ppm" },
-                humidity: { value: 75.6, unit: "%" }
+                temperature: { value: 0.0, unit: "C" },
+                CO2: { value: 0.0, unit: "ppm" },
+                humidity: { value: 0.0, unit: "%" }
             }
         }
     }
@@ -243,12 +243,14 @@ const generateRandomData = (currentAltitude) => {
 export const SensorsDataProvider = ({ children }) => {
     const [data, setData] = useState(initialData); // Iniciar con datos en reposo
     const [currentAltitude, setCurrentAltitude] = useState(0);
+    const [arrivalAlert, setArrivalAlert] = useState(false);
     const [isArduinoConnected, setIsArduinoConnected] = useState(false);
     const [useSimulation, setUseSimulation] = useState(true);
     const [useRealMPU, setUseRealMPU] = useState(false);
     const [activeMode, setActiveMode] = useState(null); // Guardar el modo activo
     const intervalRef = useRef(null);
     const socketRef = useRef(null);
+    const simRef = useRef({ t: 0, angPos: { x: 0, y: 0, z: 0 }, angVel: { x: 0, y: 0, z: 0 } });
 
     // Conexión Socket.io principal - Ahora más simple y enfocada
     useEffect(() => {
@@ -674,14 +676,180 @@ export const SensorsDataProvider = ({ children }) => {
             lastLon = GPS_BASE_LON;
         }
         
-        // Generar datos simulados completos
+        // Generar datos simulados completos con comportamiento físico más realista
+        // Loop de simulación a 50ms (20Hz) para giros y aceleraciones coherentes
+        const intervalMs = 50;
+        simRef.current = { t: 0, angPos: { x: 0, y: 0, z: 0 }, angVel: { x: 0, y: 0, z: 0 } };
+        // preparar el despegue: registrar altitud inicial y tiempo de inicio
+        simRef.current.altStart = currentAltitude;
+        simRef.current.altStartTime = Date.now();
+        setArrivalAlert(false);
         intervalRef.current = setInterval(() => {
-            setCurrentAltitude(prevAltitude => {
-                const newAltitude = prevAltitude + 17;
-                setData(generateRandomData(newAltitude));
-                return newAltitude;
+            // calcular nueva altitud en base al tiempo desde el inicio de simulación
+            const dt = intervalMs / 1000;
+            const s = simRef.current;
+            const elapsedSinceStart = (Date.now() - (s.altStartTime || Date.now())) / 1000;
+            const climbDuration = 10; // segundos para llegar a 1 km
+            const climbTarget = 1000; // metros
+            const climbRate = climbTarget / climbDuration; // m/s (100)
+            const newAltitude = Math.min(climbTarget, (s.altStart || 0) + climbRate * elapsedSinceStart);
+
+            // marcar llegada si se alcanza 1 km
+            if (newAltitude >= climbTarget && !arrivalAlert) {
+                setArrivalAlert(true);
+            }
+
+            // actualizar estado de altitud
+            setCurrentAltitude(newAltitude);
+
+            // Usaremos newAltitude para actualizar los sensores a continuación
+
+            // actualizar sim
+            s.t += dt;
+
+            // patrones sinusoidales diseñados para producir ~±10° de inclinación
+            const freqX = 0.18; // Hz
+            const freqY = 0.12;
+            const freqZ = 0.25;
+            const ampX = 12.5; // deg/s amplitude -> integrará a ~10 deg
+            const ampY = 8.0;
+            const ampZ = 6.0;
+
+            const targetVx = ampX * Math.sin(2 * Math.PI * freqX * s.t);
+            const targetVy = ampY * Math.sin(2 * Math.PI * freqY * s.t + 0.5);
+            const targetVz = ampZ * Math.sin(2 * Math.PI * freqZ * s.t + 1.0);
+
+            // suavizado de la velocidad angular (simulate motor/servo response)
+            const velAlpha = 0.15;
+            s.angVel.x += (targetVx - s.angVel.x) * velAlpha;
+            s.angVel.y += (targetVy - s.angVel.y) * velAlpha;
+            s.angVel.z += (targetVz - s.angVel.z) * velAlpha;
+
+            // integrar posiciones angulares (deg)
+            s.angPos.x += s.angVel.x * dt;
+            s.angPos.y += s.angVel.y * dt;
+            s.angPos.z += s.angVel.z * dt;
+
+            // limitar posiciones a ±15° por seguridad visual
+            const clamp = (v, m) => Math.max(Math.min(v, m), -m);
+            s.angPos.x = clamp(s.angPos.x, 15);
+            s.angPos.y = clamp(s.angPos.y, 15);
+            s.angPos.z = clamp(s.angPos.z, 15);
+
+            // generar ruido (simple box-muller)
+            const gauss = () => {
+                let u = 0, v = 0;
+                while (u === 0) u = Math.random();
+                while (v === 0) v = Math.random();
+                return Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v);
+            };
+
+            // Gyroscope (dps) -> usar angVel con ruido
+            const gyroX = s.angVel.x + gauss() * 0.2;
+            const gyroY = s.angVel.y + gauss() * 0.2;
+            const gyroZ = s.angVel.z + gauss() * 0.2;
+
+            // Accelerometer: asumir sin aceleración lineal, solo gravedad rotada
+            // gravedad en sensor frame: rotate (0, 0, -1g) by angPos (roll=x, pitch=y, yaw=z)
+            const toRad = (d) => d * Math.PI / 180;
+            const rx = toRad(s.angPos.x);
+            const ry = toRad(s.angPos.y);
+            const rz = toRad(s.angPos.z);
+
+            // Rotation order: Z (yaw) then Y (pitch) then X (roll)
+            // Build rotation matrix R = Rz * Ry * Rx
+            const cx = Math.cos(rx), sx = Math.sin(rx);
+            const cy = Math.cos(ry), sy = Math.sin(ry);
+            const cz = Math.cos(rz), sz = Math.sin(rz);
+
+            const R = [
+                [cz * cy, cz * sy * sx - sz * cx, cz * sy * cx + sz * sx],
+                [sz * cy, sz * sy * sx + cz * cx, sz * sy * cx - cz * sx],
+                [-sy, cy * sx, cy * cx]
+            ];
+
+            // gravity vector [0,0,-1]
+            const g = [0, 0, -1];
+            const accX = R[0][0] * g[0] + R[0][1] * g[1] + R[0][2] * g[2];
+            const accY = R[1][0] * g[0] + R[1][1] * g[1] + R[1][2] * g[2];
+            const accZ = R[2][0] * g[0] + R[2][1] * g[1] + R[2][2] * g[2];
+
+            // añadir ruido micro en g
+            const accelNoise = 0.005;
+            const accelX = accX + gauss() * accelNoise;
+            const accelY = accY + gauss() * accelNoise;
+            const accelZ = accZ + gauss() * accelNoise;
+
+            // preparar nuevo objeto de datos basado en prevData
+            setData(prevData => {
+                const newData = JSON.parse(JSON.stringify(prevData));
+                newData.timestamp = new Date().toISOString();
+
+                newData.sensors.BMP280 = {
+                    sensor_id: "BMP_280_K1",
+                    timestamp: new Date().toISOString(),
+                    readings: {
+                        temperature: { value: 29, unit: "C" },
+                        pressure: { value: (Math.random() * 50 + 950).toFixed(2), unit: "hPa" },
+                        altitude: { value: newAltitude.toFixed(2), unit: "m" }
+                    }
+                };
+
+                newData.sensors.NEO6M = {
+                    sensor_id: "NEO_6M_K1",
+                    timestamp: new Date().toISOString(),
+                    readings: {
+                        location: {
+                            latitude: lastLat.toFixed(6),
+                            longitude: lastLon.toFixed(6),
+                            altitude: { value: newAltitude.toFixed(2), unit: 'm' }
+                        },
+                        speed: { value: (Math.random() * 1 + 0.2).toFixed(2), unit: "km/h" },
+                        satellites: Math.floor(Math.random() * 20)
+                    }
+                };
+
+                newData.sensors.MPU9250 = {
+                    sensor_id: "MPU_9250_K1",
+                    timestamp: new Date().toISOString(),
+                    readings: {
+                        accelerometer: {
+                            x: { value: accelX.toFixed(3), unit: "g" },
+                            y: { value: accelY.toFixed(3), unit: "g" },
+                            z: { value: accelZ.toFixed(3), unit: "g" }
+                        },
+                        gyroscope: {
+                            x: { value: gyroX.toFixed(2), unit: "dps" },
+                            y: { value: gyroY.toFixed(2), unit: "dps" },
+                            z: { value: gyroZ.toFixed(2), unit: "dps" }
+                        }
+                    }
+                };
+
+                newData.sensors.CCS811 = {
+                    sensor_id: "CCS_811_K1",
+                    timestamp: new Date().toISOString(),
+                    readings: {
+                        CO2: { value: (Math.random() * 1000).toFixed(2), unit: "ppm" },
+                        TVOC: { value: (Math.random() * 500).toFixed(2), unit: "ppb" }
+                    }
+                };
+
+                newData.sensors.SCD40 = {
+                    sensor_id: "SCD_40_K1",
+                    timestamp: new Date().toISOString(),
+                    readings: {
+                        temperature: { value: (22 + Math.random() * 8).toFixed(2), unit: "C" },
+                        CO2: { value: (350 + Math.random() * 800).toFixed(2), unit: "ppm" },
+                        humidity: { value: (40 + Math.random() * 40).toFixed(1), unit: "%" }
+                    }
+                };
+
+                return newData;
             });
-        }, 1000);
+
+            return newAltitude;
+        }, intervalMs);
     };
 
     // Función para detener y reiniciar los datos

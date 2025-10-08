@@ -452,21 +452,24 @@ const RealTimePage = () => {
 
                     {/* Contenedor de simulación */}
                     <div className='w-full lg:w-5/12 flex flex-col justify-start lg:justify-center mt-6 lg:mt-0'>
-                        <motion.div 
-                            className='flex-1 mb-4 flex justify-center h-[320px] sm:h-[360px] lg:h-[400px] xl:h-[440px]'
+                        <motion.div
+                            className='w-full mb-3 px-2 lg:px-0'
+                            initial={{ y: 10, opacity: 0 }}
+                            animate={{ y: 0, opacity: 1 }}
+                            transition={{ duration: 0.3, ease: 'easeOut' }}
+                        >
+                            <div className='bg-gray-800/50 backdrop-blur-sm p-2 rounded w-full'>
+                                <Actions onStart={handleStartAll} onStop={handleStopAll} isSimulating={isSimulating} />
+                            </div>
+                        </motion.div>
+
+                        <motion.div
+                            className='flex-1 mt-2 mb-4 flex justify-center h-[520px] sm:h-[640px] lg:h-[760px] xl:h-[880px] w-full relative'
                             initial={{ x: 20, opacity: 0 }}
                             animate={{ x: 0, opacity: 1 }}
                             transition={{ duration: 0.5, ease: 'easeOut' }}
                         >
                             <SimulationCanSat testMode={activeMode === 'unitTest' ? 'unitTest' : null} />
-                        </motion.div>
-                        <motion.div 
-                            className='flex flex-col space-y-3 px-2 lg:px-0'
-                            initial={{ y: 20, opacity: 0 }}
-                            animate={{ y: 0, opacity: 1 }}
-                            transition={{ duration: 0.6, ease: 'easeOut' }}
-                        >
-                            <Actions onStart={handleStartAll} onStop={handleStopAll} isSimulating={isSimulating} />
                         </motion.div>
                     </div>
                 </div>
